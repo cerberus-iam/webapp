@@ -150,23 +150,25 @@ export function AppSidebar() {
         ))}
       </SidebarContent>
       <SidebarFooter>
-        <div className="flex items-center gap-3 rounded-md border bg-sidebar-accent/40 p-3">
-          <Avatar className="size-10">
-            <AvatarImage src={undefined} alt={user?.name ?? "Admin"} />
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
-          <div className="flex flex-1 flex-col">
-            <span className="text-sm font-medium text-sidebar-foreground">
-              {user?.name ?? user?.email ?? "Admin"}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              {user?.organisation?.name ?? "Cerberus IAM"}
-            </span>
+        <div className="flex flex-col items-start gap-3 rounded-md border bg-sidebar-accent/40 p-3">
+          <div className="flex w-full items-start gap-3">
+            <Avatar className="size-10">
+              <AvatarImage src={undefined} alt={user?.name ?? "Admin"} />
+              <AvatarFallback>{initials}</AvatarFallback>
+            </Avatar>
+            <div className="flex flex-1 flex-col">
+              <span className="text-sm font-medium text-sidebar-foreground">
+                {user?.name ?? user?.email ?? "Admin"}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {user?.organisation?.name ?? "Cerberus IAM"}
+              </span>
+            </div>
           </div>
           <Button
             variant="ghost"
             size="sm"
-            className="gap-2"
+            className="gap-2 cursor-pointer"
             onClick={async () => {
               setIsLoggingOut(true);
               try {
