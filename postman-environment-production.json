@@ -1,0 +1,85 @@
+{
+  "id": "cerberus-iam-production",
+  "name": "Cerberus IAM - Production",
+  "values": [
+    {
+      "key": "base_url",
+      "value": "https://api.cerberus-iam.com",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "org_slug",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "email",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "password",
+      "value": "",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "csrf_token",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "session_cookie",
+      "value": "",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "client_id",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "client_secret",
+      "value": "",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "api_key",
+      "value": "",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "org_id",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}

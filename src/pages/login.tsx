@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,6 +26,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/use-auth";
+import { getApiErrorMessage } from "@/lib/http";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -38,6 +40,24 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const { login, status } = useAuth();
+  const isCheckingSession = status === "loading";
+  const isAuthenticated = status === "authenticated";
+
+  const returnTo = useMemo(() => {
+    const queryParam = router.query.returnTo;
+    if (typeof queryParam === "string" && queryParam.startsWith("/")) {
+      return queryParam;
+    }
+    return "/";
+  }, [router.query.returnTo]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      void router.replace(returnTo);
+    }
+  }, [isAuthenticated, returnTo, router]);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -50,22 +70,19 @@ export default function LoginPage() {
 
   async function onSubmit(data: LoginFormValues) {
     setIsLoading(true);
+    setFormError(null);
 
     try {
-      // TODO: Replace with actual API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      console.log("Login data:", data);
-
+      await login({ email: data.email, password: data.password });
       toast.success("Login successful!", {
         description: "Welcome back to the Admin Portal",
       });
-
-      // Redirect to dashboard
-      router.push("/");
-    } catch {
+      void router.replace(returnTo);
+    } catch (error) {
+      const message = getApiErrorMessage(error, "Invalid email or password. Please try again.");
+      setFormError(message);
       toast.error("Login failed", {
-        description: "Invalid email or password. Please try again.",
+        description: message,
       });
     } finally {
       setIsLoading(false);
@@ -91,6 +108,11 @@ export default function LoginPage() {
           <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                {formError && (
+                  <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                    {formError}
+                  </div>
+                )}
                 <FormField
                   control={form.control}
                   name="email"
@@ -104,7 +126,7 @@ export default function LoginPage() {
                             placeholder="name@example.com"
                             type="email"
                             className="pl-10"
-                            disabled={isLoading}
+                            disabled={isLoading || isCheckingSession}
                             {...field}
                           />
                         </div>
@@ -135,7 +157,7 @@ export default function LoginPage() {
                             placeholder="Enter your password"
                             type="password"
                             className="pl-10"
-                            disabled={isLoading}
+                            disabled={isLoading || isCheckingSession}
                             {...field}
                           />
                         </div>
@@ -154,7 +176,7 @@ export default function LoginPage() {
                         <Checkbox
                           checked={field.value}
                           onCheckedChange={field.onChange}
-                          disabled={isLoading}
+                          disabled={isLoading || isCheckingSession}
                         />
                       </FormControl>
                       <FormLabel className="text-sm font-normal cursor-pointer">
@@ -164,8 +186,12 @@ export default function LoginPage() {
                   )}
                 />
 
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Signing in..." : "Sign in"}
+                <Button type="submit" className="w-full" disabled={isLoading || isCheckingSession}>
+                  {isLoading
+                    ? "Signing in..."
+                    : isCheckingSession
+                      ? "Checking session..."
+                      : "Sign in"}
                 </Button>
               </form>
             </Form>
@@ -183,7 +209,7 @@ export default function LoginPage() {
               variant="outline"
               className="w-full"
               onClick={() => router.push("/onboarding")}
-              disabled={isLoading}
+              disabled={isLoading || isCheckingSession}
             >
               Create an organization
             </Button>

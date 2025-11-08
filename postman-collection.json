@@ -1,0 +1,2574 @@
+{
+  "info": {
+    "name": "Cerberus IAM API",
+    "description": "Enterprise-grade Identity and Access Management API\n\n## Features\n- OAuth 2.1 and OpenID Connect 1.0\n- Multi-tenant architecture\n- Role-based access control (RBAC)\n- Multi-factor authentication (MFA)\n- Session and token-based auth\n- Comprehensive audit logging\n\n## Authentication Methods\n\n### Session Authentication\nUsed for web applications. The session cookie is automatically managed.\n\n### Bearer Token Authentication\nUsed for API access. Include the access token in the Authorization header.\n\n### API Key Authentication\nUsed for server-to-server communication.\n\n## Environment Variables\n\nCreate a Postman environment with these variables:\n- `base_url`: http://localhost:4000\n- `email`: test@example.com\n- `password`: TestPassword123!\n- `access_token`: (auto-populated after login)\n- `refresh_token`: (auto-populated after OAuth flow)\n- `csrf_token`: (auto-populated after login)\n- `org_slug`: your-org-slug\n- `client_id`: (your OAuth2 client ID)\n- `client_secret`: (your OAuth2 client secret)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "0.1.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Check API health status"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register Organization",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('user_id', response.user.id);",
+                  "    pm.environment.set('org_id', response.organisation.id);",
+                  "    ",
+                  "    // Set organization slug for subsequent requests",
+                  "    if (response.organisation && response.organisation.slug) {",
+                  "        pm.environment.set('org_slug', response.organisation.slug);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}",
+                "description": "Organization identifier"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"organisationName\": \"My Company\",\n  \"email\": \"owner@example.com\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"password\": \"SecurePassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "auth", "register"]
+            },
+            "description": "Register a new organization with an owner account. The organization slug is auto-generated from the organization name."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    ",
+                  "    // Extract organization slug from response",
+                  "    if (response.organisation && response.organisation.slug) {",
+                  "        pm.environment.set('org_slug', response.organisation.slug);",
+                  "    }",
+                  "    ",
+                  "    // Extract CSRF token from response header",
+                  "    const csrfToken = pm.response.headers.get('X-CSRF-Token');",
+                  "    if (csrfToken) {",
+                  "        pm.environment.set('csrf_token', csrfToken);",
+                  "    }",
+                  "    ",
+                  "    // Extract session cookie",
+                  "    const sessionCookie = pm.cookies.get('cerberus_session');",
+                  "    if (sessionCookie) {",
+                  "        pm.environment.set('session_cookie', sessionCookie);",
+                  "    }",
+                  "    ",
+                  "    // Store user and org IDs",
+                  "    if (response.user && response.user.id) {",
+                  "        pm.environment.set('user_id', response.user.id);",
+                  "    }",
+                  "    if (response.organisation && response.organisation.id) {",
+                  "        pm.environment.set('org_id', response.organisation.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "auth", "login"]
+            },
+            "description": "Login with email and password. Sets session cookie and CSRF token."
+          },
+          "response": []
+        },
+        {
+          "name": "Login with MFA",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"mfaToken\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "auth", "login"]
+            },
+            "description": "Login with email, password, and MFA token (6-digit TOTP code)"
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "auth", "logout"]
+            },
+            "description": "Logout and invalidate session"
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Email",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/auth/verify-email?token=verification_token_from_email",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "auth", "verify-email"],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "verification_token_from_email",
+                  "description": "Email verification token"
+                }
+              ]
+            },
+            "description": "Verify email address using token from email"
+          },
+          "response": []
+        },
+        {
+          "name": "Request Password Reset",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/auth/forgot-password",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "auth", "forgot-password"]
+            },
+            "description": "Request password reset - sends email with reset token"
+          },
+          "response": []
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"reset_token_from_email\",\n  \"newPassword\": \"NewSecurePassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/auth/reset-password",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "auth", "reset-password"]
+            },
+            "description": "Reset password using token from email"
+          },
+          "response": []
+        },
+        {
+          "name": "Accept Invitation",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"invitation_token_from_email\",\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\",\n  \"password\": \"SecurePassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/auth/invitations/accept",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "auth", "invitations", "accept"]
+            },
+            "description": "Accept user invitation and create account"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "OAuth2 & OIDC",
+      "item": [
+        {
+          "name": "Discovery Document",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/.well-known/openid-configuration",
+              "host": ["{{base_url}}"],
+              "path": [".well-known", "openid-configuration"]
+            },
+            "description": "OpenID Connect Discovery document (RFC 8414)"
+          },
+          "response": []
+        },
+        {
+          "name": "JWKS (JSON Web Key Set)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/oauth2/jwks.json",
+              "host": ["{{base_url}}"],
+              "path": ["oauth2", "jwks.json"]
+            },
+            "description": "Public keys for JWT signature verification"
+          },
+          "response": []
+        },
+        {
+          "name": "Authorization Endpoint",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/oauth2/authorize?client_id={{client_id}}&redirect_uri=https://app.example.com/callback&response_type=code&scope=openid profile email&state=random_state_string&code_challenge=dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk&code_challenge_method=S256",
+              "host": ["{{base_url}}"],
+              "path": ["oauth2", "authorize"],
+              "query": [
+                {
+                  "key": "client_id",
+                  "value": "{{client_id}}"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "https://app.example.com/callback"
+                },
+                {
+                  "key": "response_type",
+                  "value": "code"
+                },
+                {
+                  "key": "scope",
+                  "value": "openid profile email"
+                },
+                {
+                  "key": "state",
+                  "value": "random_state_string"
+                },
+                {
+                  "key": "code_challenge",
+                  "value": "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+                },
+                {
+                  "key": "code_challenge_method",
+                  "value": "S256"
+                }
+              ]
+            },
+            "description": "Start OAuth2 authorization flow (browser-based, returns HTML)"
+          },
+          "response": []
+        },
+        {
+          "name": "Token Exchange (Authorization Code)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('access_token', response.access_token);",
+                  "    if (response.refresh_token) {",
+                  "        pm.environment.set('refresh_token', response.refresh_token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code",
+                  "type": "text"
+                },
+                {
+                  "key": "code",
+                  "value": "authorization_code_from_callback",
+                  "type": "text"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "https://app.example.com/callback",
+                  "type": "text"
+                },
+                {
+                  "key": "client_id",
+                  "value": "{{client_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "code_verifier",
+                  "value": "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
+                  "type": "text",
+                  "description": "PKCE verifier"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/oauth2/token",
+              "host": ["{{base_url}}"],
+              "path": ["oauth2", "token"]
+            },
+            "description": "Exchange authorization code for access token and refresh token"
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('access_token', response.access_token);",
+                  "    pm.environment.set('refresh_token', response.refresh_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "refresh_token",
+                  "type": "text"
+                },
+                {
+                  "key": "refresh_token",
+                  "value": "{{refresh_token}}",
+                  "type": "text"
+                },
+                {
+                  "key": "client_id",
+                  "value": "{{client_id}}",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/oauth2/token",
+              "host": ["{{base_url}}"],
+              "path": ["oauth2", "token"]
+            },
+            "description": "Refresh access token using refresh token (token rotation enabled)"
+          },
+          "response": []
+        },
+        {
+          "name": "Token - Client Credentials",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('access_token', response.access_token);",
+                  "    pm.test('No refresh token for client credentials', function() {",
+                  "        pm.expect(response).to.not.have.property('refresh_token');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{client_id}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{client_secret}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "client_credentials",
+                  "type": "text"
+                },
+                {
+                  "key": "scope",
+                  "value": "api:read api:write",
+                  "type": "text",
+                  "description": "Optional custom scopes (OIDC scopes are prohibited)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/oauth2/token",
+              "host": ["{{base_url}}"],
+              "path": ["oauth2", "token"]
+            },
+            "description": "Obtain access token for machine-to-machine (M2M) authentication. Requires confidential client with client_secret. No refresh token is issued. OIDC scopes (openid, profile, email, phone, address) are prohibited."
+          },
+          "response": []
+        },
+        {
+          "name": "UserInfo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/oauth2/userinfo",
+              "host": ["{{base_url}}"],
+              "path": ["oauth2", "userinfo"]
+            },
+            "description": "Get user information (OpenID Connect UserInfo endpoint)"
+          },
+          "response": []
+        },
+        {
+          "name": "Token Introspection",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{client_id}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{client_secret}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/oauth2/introspect",
+              "host": ["{{base_url}}"],
+              "path": ["oauth2", "introspect"]
+            },
+            "description": "Validate and introspect an access token (OAuth2 Token Introspection)"
+          },
+          "response": []
+        },
+        {
+          "name": "Revoke Token",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{client_id}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{client_secret}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "token",
+                  "value": "{{refresh_token}}",
+                  "type": "text"
+                },
+                {
+                  "key": "token_type_hint",
+                  "value": "refresh_token",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/oauth2/revoke",
+              "host": ["{{base_url}}"],
+              "path": ["oauth2", "revoke"]
+            },
+            "description": "Revoke an access token or refresh token"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Consent Page",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/oauth2/consent?challenge=consent_challenge_string",
+              "host": ["{{base_url}}"],
+              "path": ["oauth2", "consent"],
+              "query": [
+                {
+                  "key": "challenge",
+                  "value": "consent_challenge_string",
+                  "description": "Consent challenge from authorization flow"
+                }
+              ]
+            },
+            "description": "Get consent page (HTML) - displays OAuth2 consent form"
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Consent Decision",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"challenge\": \"consent_challenge_string\",\n  \"grantScope\": [\"openid\", \"profile\", \"email\"],\n  \"remember\": true,\n  \"rememberFor\": 3600\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/oauth2/consent",
+              "host": ["{{base_url}}"],
+              "path": ["oauth2", "consent"]
+            },
+            "description": "Submit consent decision (approve or deny OAuth2 authorization)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User Profile",
+      "item": [
+        {
+          "name": "Get Profile",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/me/profile",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "me", "profile"]
+            },
+            "description": "Get current user profile"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Doe\",\n  \"phone\": \"+1234567890\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/me/profile",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "me", "profile"]
+            },
+            "description": "Update current user profile"
+          },
+          "response": []
+        },
+        {
+          "name": "List Sessions",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/me/sessions",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "me", "sessions"]
+            },
+            "description": "List all active sessions for current user"
+          },
+          "response": []
+        },
+        {
+          "name": "Revoke Session",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/me/sessions/:sessionId",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "me", "sessions", ":sessionId"],
+              "variable": [
+                {
+                  "key": "sessionId",
+                  "value": "ses_abc123"
+                }
+              ]
+            },
+            "description": "Revoke a specific session"
+          },
+          "response": []
+        },
+        {
+          "name": "MFA - Check Status",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/me/mfa",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "me", "mfa"]
+            },
+            "description": "Check MFA enrollment status"
+          },
+          "response": []
+        },
+        {
+          "name": "MFA - Enable (Get QR Code)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/me/mfa/enable",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "me", "mfa", "enable"]
+            },
+            "description": "Start MFA enrollment - returns QR code and secret"
+          },
+          "response": []
+        },
+        {
+          "name": "MFA - Verify and Complete",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/me/mfa/verify",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "me", "mfa", "verify"]
+            },
+            "description": "Verify TOTP token and complete MFA enrollment - returns backup codes"
+          },
+          "response": []
+        },
+        {
+          "name": "MFA - Disable",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/me/mfa/disable",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "me", "mfa", "disable"]
+            },
+            "description": "Disable MFA (requires password confirmation)"
+          },
+          "response": []
+        },
+        {
+          "name": "MFA - Regenerate Backup Codes",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/me/mfa/backup-codes",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "me", "mfa", "backup-codes"]
+            },
+            "description": "Generate new backup codes (invalidates old ones)"
+          },
+          "response": []
+        },
+        {
+          "name": "Export User Data",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/me/export",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "me", "export"]
+            },
+            "description": "Request user data export (GDPR compliance)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - Users",
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/users",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "users"]
+            },
+            "description": "List all users in organization (requires users:read permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/users/:userId",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "users", ":userId"],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "usr_abc123"
+                }
+              ]
+            },
+            "description": "Get user by ID (requires users:read permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newuser@example.com\",\n  \"firstName\": \"New\",\n  \"lastName\": \"User\",\n  \"password\": \"SecurePassword123!\",\n  \"roleIds\": [\"rol_abc123\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/admin/users",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "users"]
+            },
+            "description": "Create a new user (requires users:create permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Updated\",\n  \"lastName\": \"Name\",\n  \"email\": \"updated@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/admin/users/:userId",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "users", ":userId"],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "usr_abc123"
+                }
+              ]
+            },
+            "description": "Update user details (requires users:update permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/users/:userId",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "users", ":userId"],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "usr_abc123"
+                }
+              ]
+            },
+            "description": "Soft delete user (requires users:delete permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Add Role to User",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/users/:userId/roles/:roleId",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "users", ":userId", "roles", ":roleId"],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "usr_abc123"
+                },
+                {
+                  "key": "roleId",
+                  "value": "rol_abc123"
+                }
+              ]
+            },
+            "description": "Add role to user (requires users:update permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Role from User",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/users/:userId/roles/:roleId",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "users", ":userId", "roles", ":roleId"],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "usr_abc123"
+                },
+                {
+                  "key": "roleId",
+                  "value": "rol_abc123"
+                }
+              ]
+            },
+            "description": "Remove role from user (requires users:update permission)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - Roles",
+      "item": [
+        {
+          "name": "List Roles",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/roles",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "roles"]
+            },
+            "description": "List all roles in organization (requires roles:read permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Role",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Developer\",\n  \"slug\": \"developer\",\n  \"description\": \"Developers with code access\",\n  \"permissions\": [\"users:read\", \"projects:*\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/admin/roles",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "roles"]
+            },
+            "description": "Create a new role (requires roles:create permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Role",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Senior Developer\",\n  \"description\": \"Senior developers with extended permissions\",\n  \"permissions\": [\"users:read\", \"projects:*\", \"deployments:*\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/admin/roles/:roleId",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "roles", ":roleId"],
+              "variable": [
+                {
+                  "key": "roleId",
+                  "value": "rol_abc123"
+                }
+              ]
+            },
+            "description": "Update role details (requires roles:update permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Role",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/roles/:roleId",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "roles", ":roleId"],
+              "variable": [
+                {
+                  "key": "roleId",
+                  "value": "rol_abc123"
+                }
+              ]
+            },
+            "description": "Delete role (requires roles:delete permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "List Permissions",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/permissions",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "permissions"]
+            },
+            "description": "List all available permissions (requires roles:read permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Add Permission to Role",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/roles/:roleId/permissions/:permissionId",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "roles", ":roleId", "permissions", ":permissionId"],
+              "variable": [
+                {
+                  "key": "roleId",
+                  "value": "rol_abc123"
+                },
+                {
+                  "key": "permissionId",
+                  "value": "perm_abc123"
+                }
+              ]
+            },
+            "description": "Add permission to role (requires roles:update permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Permission from Role",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/roles/:roleId/permissions/:permissionId",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "roles", ":roleId", "permissions", ":permissionId"],
+              "variable": [
+                {
+                  "key": "roleId",
+                  "value": "rol_abc123"
+                },
+                {
+                  "key": "permissionId",
+                  "value": "perm_abc123"
+                }
+              ]
+            },
+            "description": "Remove permission from role (requires roles:update permission)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - Teams",
+      "item": [
+        {
+          "name": "List Teams",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/teams",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "teams"]
+            },
+            "description": "List all teams in organization (requires teams:read permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Team",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Engineering\",\n  \"slug\": \"engineering\",\n  \"description\": \"Engineering team\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/admin/teams",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "teams"]
+            },
+            "description": "Create a new team (requires teams:create permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Team",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Platform Engineering\",\n  \"description\": \"Platform and infrastructure team\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/admin/teams/:teamId",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "teams", ":teamId"],
+              "variable": [
+                {
+                  "key": "teamId",
+                  "value": "tem_abc123"
+                }
+              ]
+            },
+            "description": "Update team details (requires teams:update permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Team",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/teams/:teamId",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "teams", ":teamId"],
+              "variable": [
+                {
+                  "key": "teamId",
+                  "value": "tem_abc123"
+                }
+              ]
+            },
+            "description": "Delete team (requires teams:delete permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Add Member to Team",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"usr_abc123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/admin/teams/:teamId/members",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "teams", ":teamId", "members"],
+              "variable": [
+                {
+                  "key": "teamId",
+                  "value": "tem_abc123"
+                }
+              ]
+            },
+            "description": "Add member to team (requires teams:update permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Member from Team",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/teams/:teamId/members/:userId",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "teams", ":teamId", "members", ":userId"],
+              "variable": [
+                {
+                  "key": "teamId",
+                  "value": "tem_abc123"
+                },
+                {
+                  "key": "userId",
+                  "value": "usr_abc123"
+                }
+              ]
+            },
+            "description": "Remove member from team (requires teams:update permission)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - OAuth2 Clients",
+      "item": [
+        {
+          "name": "List Clients",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/clients",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "clients"]
+            },
+            "description": "List all OAuth2 clients (requires clients:read permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Client",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('client_id', response.clientId);",
+                  "    if (response.clientSecret) {",
+                  "        pm.environment.set('client_secret', response.clientSecret);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My Web App\",\n  \"clientType\": \"confidential\",\n  \"redirectUris\": [\"https://app.example.com/callback\"],\n  \"allowedScopes\": [\"openid\", \"profile\", \"email\", \"offline_access\"],\n  \"tokenEndpointAuthMethod\": \"client_secret_post\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/admin/clients",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "clients"]
+            },
+            "description": "Create OAuth2 client - saves client_id and client_secret to environment (requires clients:create permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Client",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My Updated App\",\n  \"redirectUris\": [\"https://app.example.com/callback\", \"https://app.example.com/oauth/callback\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/admin/clients/:clientId",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "clients", ":clientId"],
+              "variable": [
+                {
+                  "key": "clientId",
+                  "value": "{{client_id}}"
+                }
+              ]
+            },
+            "description": "Update OAuth2 client settings (requires clients:update permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Rotate Client Secret",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.clientSecret) {",
+                  "        pm.environment.set('client_secret', response.clientSecret);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/clients/:clientId/rotate-secret",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "clients", ":clientId", "rotate-secret"],
+              "variable": [
+                {
+                  "key": "clientId",
+                  "value": "{{client_id}}"
+                }
+              ]
+            },
+            "description": "Rotate OAuth2 client secret - saves new secret to environment (requires clients:update permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Revoke Client",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/clients/:clientId/revoke",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "clients", ":clientId", "revoke"],
+              "variable": [
+                {
+                  "key": "clientId",
+                  "value": "{{client_id}}"
+                }
+              ]
+            },
+            "description": "Revoke OAuth2 client (requires clients:delete permission)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - Organization",
+      "item": [
+        {
+          "name": "Get Organization Settings",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/organisation",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "organisation"]
+            },
+            "description": "Get organization settings (requires org:read permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Organization Settings",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Company Name\",\n  \"mfaRequired\": true,\n  \"sessionLifetime\": 86400\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/admin/organisation",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "organisation"]
+            },
+            "description": "Update organization settings (requires org:update permission)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - API Keys",
+      "item": [
+        {
+          "name": "List API Keys",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/api-keys",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "api-keys"]
+            },
+            "description": "List all API keys (requires api-keys:read permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Create API Key",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('api_key', response.key);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Server Integration Key\",\n  \"expiresAt\": \"2026-12-31T23:59:59Z\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/admin/api-keys",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "api-keys"]
+            },
+            "description": "Create API key - saves key to environment (requires api-keys:create permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get API Key",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/api-keys/:keyId",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "api-keys", ":keyId"],
+              "variable": [
+                {
+                  "key": "keyId",
+                  "value": "key_abc123"
+                }
+              ]
+            },
+            "description": "Get API key details (requires api-keys:read permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Revoke API Key",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/api-keys/:keyId/revoke",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "api-keys", ":keyId", "revoke"],
+              "variable": [
+                {
+                  "key": "keyId",
+                  "value": "key_abc123"
+                }
+              ]
+            },
+            "description": "Revoke API key (requires api-keys:delete permission)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - Webhooks",
+      "item": [
+        {
+          "name": "List Webhooks",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/webhooks",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "webhooks"]
+            },
+            "description": "List all webhooks (requires webhooks:read permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Webhook",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"url\": \"https://api.example.com/webhooks\",\n  \"events\": [\"user.created\", \"user.updated\", \"user.deleted\"],\n  \"secret\": \"webhook_signing_secret\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/admin/webhooks",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "webhooks"]
+            },
+            "description": "Create webhook subscription (requires webhooks:create permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Webhook",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"events\": [\"user.created\", \"user.updated\", \"user.deleted\", \"user.login\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/admin/webhooks/:webhookId",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "webhooks", ":webhookId"],
+              "variable": [
+                {
+                  "key": "webhookId",
+                  "value": "whk_abc123"
+                }
+              ]
+            },
+            "description": "Update webhook subscription (requires webhooks:update permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Webhook",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/webhooks/:webhookId",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "webhooks", ":webhookId"],
+              "variable": [
+                {
+                  "key": "webhookId",
+                  "value": "whk_abc123"
+                }
+              ]
+            },
+            "description": "Delete webhook subscription (requires webhooks:delete permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Test Webhook",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/webhooks/:webhookId/test",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "webhooks", ":webhookId", "test"],
+              "variable": [
+                {
+                  "key": "webhookId",
+                  "value": "whk_abc123"
+                }
+              ]
+            },
+            "description": "Send test event to webhook endpoint (requires webhooks:update permission)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - Invitations",
+      "item": [
+        {
+          "name": "List Invitations",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/invitations",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "invitations"]
+            },
+            "description": "List all invitations (requires invitations:read permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Invitation",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newmember@example.com\",\n  \"roleIds\": [\"rol_abc123\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/admin/invitations",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "invitations"]
+            },
+            "description": "Send user invitation (requires invitations:create permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Resend Invitation",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/invitations/:invitationId/resend",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "invitations", ":invitationId", "resend"],
+              "variable": [
+                {
+                  "key": "invitationId",
+                  "value": "inv_abc123"
+                }
+              ]
+            },
+            "description": "Resend invitation email (requires invitations:update permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Revoke Invitation",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/invitations/:invitationId",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "invitations", ":invitationId"],
+              "variable": [
+                {
+                  "key": "invitationId",
+                  "value": "inv_abc123"
+                }
+              ]
+            },
+            "description": "Revoke invitation (requires invitations:delete permission)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - Audit Logs",
+      "item": [
+        {
+          "name": "Query Audit Logs",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/audit-logs?eventCategory=auth&limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "audit-logs"],
+              "query": [
+                {
+                  "key": "eventCategory",
+                  "value": "auth",
+                  "description": "Filter by category: auth, user, client, permission, system"
+                },
+                {
+                  "key": "action",
+                  "value": "login",
+                  "description": "Filter by action: create, read, update, delete, login, logout",
+                  "disabled": true
+                },
+                {
+                  "key": "success",
+                  "value": "true",
+                  "description": "Filter by success/failure",
+                  "disabled": true
+                },
+                {
+                  "key": "startDate",
+                  "value": "2025-10-01T00:00:00Z",
+                  "description": "ISO 8601 datetime",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "2025-10-31T23:59:59Z",
+                  "description": "ISO 8601 datetime",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Query audit logs with filters (requires audit:read permission)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Audit Log",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              },
+              {
+                "key": "X-Org-Domain",
+                "value": "{{org_slug}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/audit-logs/:logId",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "admin", "audit-logs", ":logId"],
+              "variable": [
+                {
+                  "key": "logId",
+                  "value": "aud_abc123"
+                }
+              ]
+            },
+            "description": "Get single audit log by ID (requires audit:read permission)"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:4000",
+      "type": "string"
+    }
+  ]
+}

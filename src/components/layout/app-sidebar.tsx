@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/use-auth";
 
 type NavItem = {
   title: string;
@@ -56,7 +57,7 @@ const navSections: NavSection[] = [
   {
     title: "Identity & Access",
     items: [
-      { title: "Users", href: "/iam/users", icon: UsersRound, badge: "128" },
+      { title: "Users", href: "/iam/users", icon: UsersRound },
       { title: "Roles", href: "/iam/roles", icon: ShieldCheck },
       { title: "Policies", href: "/iam/policies", icon: LockKeyhole },
       { title: "Audit Logs", href: "/audit/logs", icon: Activity },
@@ -80,6 +81,15 @@ const navSections: NavSection[] = [
 export function AppSidebar() {
   const router = useRouter();
   const pathname = router.pathname;
+  const { user } = useAuth();
+
+  const initials =
+    user?.name
+      ?.split(" ")
+      .map((part) => part.charAt(0))
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() ?? "AD";
 
   return (
     <Sidebar className="border-r">
@@ -107,7 +117,7 @@ export function AppSidebar() {
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton
                       asChild
-                      isActive={pathname === item.href}
+                      isActive={pathname === item.href || pathname.startsWith(`${item.href}/`)}
                       tooltip={item.title}
                     >
                       <Link href={item.href}>
@@ -136,15 +146,19 @@ export function AppSidebar() {
       <SidebarFooter>
         <div className="flex items-center gap-3 rounded-md border bg-sidebar-accent/40 p-3">
           <Avatar className="size-10">
-            <AvatarImage src="https://i.pravatar.cc/100?img=12" alt="Admin" />
-            <AvatarFallback>JD</AvatarFallback>
+            <AvatarImage src={undefined} alt={user?.name ?? "Admin"} />
+            <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
           <div className="flex flex-1 flex-col">
-            <span className="text-sm font-medium text-sidebar-foreground">Jordan Daniels</span>
-            <span className="text-xs text-muted-foreground">Principal IAM Admin</span>
+            <span className="text-sm font-medium text-sidebar-foreground">
+              {user?.name ?? user?.email ?? "Admin"}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {user?.organisation?.name ?? "Cerberus IAM"}
+            </span>
           </div>
           <Badge variant="secondary" className="text-xs">
-            Enterprise
+            {user?.organisation?.slug ?? "tenant"}
           </Badge>
         </div>
       </SidebarFooter>

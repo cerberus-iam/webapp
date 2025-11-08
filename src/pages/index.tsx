@@ -1,5 +1,5 @@
 import { type ReactElement } from "react";
-import { AlertTriangle, ArrowUpRight, CheckCircle2, Shield, UserPlus } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Shield, UserPlus, UsersRound } from "lucide-react";
 
 import type { NextPageWithLayout } from "@/types/page";
 import { AppLayout } from "@/components/layout/app-layout";
@@ -21,431 +21,265 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  buildPermissionKey,
-  formatRelativeTime,
-  groupAuditEventsBySeverity,
-  resolveRolePermissions,
-  resolveUserPermissions,
-  sortUsersByRecentActivity,
-  summarizeTenants,
-} from "@/lib/iam";
-import type { IAMAuditEvent, IAMRole, IAMTenant, IAMUser } from "@/types/iam";
-
-const permissions = {
-  manageUsers: buildPermissionKey("users", "update"),
-  inviteUsers: buildPermissionKey("users", "create"),
-  suspendUsers: buildPermissionKey("users", "delete"),
-  manageRoles: buildPermissionKey("roles", "update"),
-  managePolicies: buildPermissionKey("policies", "update"),
-  manageTenants: buildPermissionKey("tenants", "update"),
-  manageApiTokens: buildPermissionKey("api-tokens", "create"),
-  reviewAudit: buildPermissionKey("audit", "review"),
-} as const;
-
-const roles: IAMRole[] = [
-  {
-    id: "iam-admin",
-    name: "IAM Administrator",
-    description: "Full administrative access across all tenants.",
-    level: 90,
-    system: true,
-    permissions: Object.values(permissions),
-  },
-  {
-    id: "security-analyst",
-    name: "Security Analyst",
-    description: "Monitors audit events and manages policies.",
-    level: 70,
-    system: false,
-    permissions: [permissions.managePolicies, permissions.reviewAudit, permissions.manageUsers],
-  },
-  {
-    id: "tenant-owner",
-    name: "Tenant Owner",
-    description: "Manages tenant members and invitations.",
-    level: 50,
-    system: false,
-    permissions: [permissions.manageUsers, permissions.inviteUsers, permissions.manageApiTokens],
-  },
-];
-
-const users: IAMUser[] = [
-  {
-    id: "user-1",
-    fullName: "Jordan Daniels",
-    email: "jordan.daniels@example.com",
-    status: "active",
-    roles: ["iam-admin"],
-    lastSeenAt: new Date().toISOString(),
-    mfaEnabled: true,
-    tenantId: "enterprise-hq",
-  },
-  {
-    id: "user-2",
-    fullName: "Priya Shah",
-    email: "priya.shah@example.com",
-    status: "active",
-    roles: ["security-analyst"],
-    lastSeenAt: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
-    mfaEnabled: true,
-    tenantId: "europe-ops",
-  },
-  {
-    id: "user-3",
-    fullName: "Miguel Torres",
-    email: "miguel.torres@example.com",
-    status: "invited",
-    roles: ["tenant-owner"],
-    lastSeenAt: null,
-    mfaEnabled: false,
-    tenantId: "north-america",
-  },
-  {
-    id: "user-4",
-    fullName: "Alexis Martin",
-    email: "alexis.martin@example.com",
-    status: "suspended",
-    roles: ["tenant-owner"],
-    lastSeenAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
-    mfaEnabled: false,
-    tenantId: "legacy-platforms",
-  },
-];
-
-const tenants: IAMTenant[] = [
-  {
-    id: "enterprise-hq",
-    name: "Enterprise HQ",
-    status: "active",
-    plan: "enterprise",
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 365).toISOString(),
-  },
-  {
-    id: "north-america",
-    name: "North America",
-    status: "pending",
-    plan: "team",
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 120).toISOString(),
-  },
-  {
-    id: "europe-ops",
-    name: "Europe Operations",
-    status: "active",
-    plan: "team",
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 220).toISOString(),
-  },
-  {
-    id: "legacy-platforms",
-    name: "Legacy Platforms",
-    status: "suspended",
-    plan: "free",
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 420).toISOString(),
-  },
-];
-
-const auditEvents: IAMAuditEvent[] = [
-  {
-    id: "evt-1",
-    action: "user.invited",
-    target: "daniela.hsu@example.com",
-    createdAt: new Date(Date.now() - 1000 * 60 * 20).toISOString(),
-    severity: "low",
-    actor: {
-      id: "user-1",
-      name: "Jordan Daniels",
-      type: "user",
-    },
-    metadata: {
-      tenantId: "enterprise-hq",
-      roles: ["tenant-owner"],
-    },
-  },
-  {
-    id: "evt-2",
-    action: "policy.updated",
-    target: "Baseline password policy",
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-    severity: "medium",
-    actor: {
-      id: "user-2",
-      name: "Priya Shah",
-      type: "user",
-    },
-    metadata: {
-      changeSet: ["minLength: 12 → 14", "added uppercase requirement"],
-    },
-  },
-  {
-    id: "evt-3",
-    action: "tenant.suspended",
-    target: "Legacy Platforms",
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 26).toISOString(),
-    severity: "high",
-    actor: {
-      id: "system",
-      name: "Risk Engine",
-      type: "system",
-    },
-    metadata: {
-      reason: "Exceeded failed login threshold",
-    },
-  },
-];
+import { useAuditLogs, useIamRoles, useIamUsers } from "@/hooks/use-iam-data";
+import { formatRelativeTime } from "@/lib/iam";
+import type { AuditLogEntry } from "@/types/api";
 
 const DashboardPage: NextPageWithLayout = () => {
-  const activeUsers = users.filter((user) => user.status === "active").length;
-  const pendingInvites = users.filter((user) => user.status === "invited").length;
-  const suspendedUsers = users.filter((user) => user.status === "suspended").length;
+  const {
+    data: users,
+    total: totalUsers,
+    isLoading: usersLoading,
+    refresh: refreshUsers,
+  } = useIamUsers();
+  const {
+    data: roles,
+    total: totalRoles,
+    isLoading: rolesLoading,
+    refresh: refreshRoles,
+  } = useIamRoles();
+  const { data: auditLogs, isLoading: auditLoading, refresh: refreshAudit } = useAuditLogs(8);
 
-  const tenantSummary = summarizeTenants(tenants);
-  const auditSeverity = groupAuditEventsBySeverity(auditEvents);
-  const recentlyActiveUsers = sortUsersByRecentActivity(users).slice(0, 3);
+  const blockedUsers = users.filter((user) => Boolean(user.blockedAt)).length;
+  const unverifiedUsers = users.filter((user) => !user.emailVerifiedAt).length;
+  const mfaEnabled = users.filter((user) => user.mfaEnabled).length;
+  const mfaCoverage = totalUsers > 0 ? Math.round((mfaEnabled / totalUsers) * 100) : 0;
+
+  const stats = [
+    {
+      label: "Total users",
+      value: usersLoading ? "…" : totalUsers.toString(),
+      helper:
+        usersLoading || unverifiedUsers === 0
+          ? "Directory synced"
+          : `${unverifiedUsers} awaiting verification`,
+      icon: UsersRound,
+    },
+    {
+      label: "MFA coverage",
+      value: usersLoading ? "…" : `${mfaCoverage}%`,
+      helper:
+        totalUsers > 0 ? `${mfaEnabled}/${totalUsers} identities protected` : "No active users",
+      icon: CheckCircle2,
+    },
+    {
+      label: "Blocked accounts",
+      value: usersLoading ? "…" : blockedUsers.toString(),
+      helper: blockedUsers > 0 ? "Review risk signals" : "All identities healthy",
+      icon: AlertTriangle,
+    },
+    {
+      label: "Active roles",
+      value: rolesLoading ? "…" : totalRoles.toString(),
+      helper: rolesLoading ? "Loading permissions…" : "Role-based access ready",
+      icon: Shield,
+    },
+  ];
+
+  const latestUsers = users.slice(0, 5);
+  const featuredRoles = roles.slice(0, 3);
+  const latestAuditLogs = auditLogs.slice(0, 6);
+  const auditCategoryCounts = tallyCategories(auditLogs);
 
   return (
-    <div className="flex flex-col gap-6">
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Active identities</CardTitle>
-            <CardDescription>Users with successful login in the last 30 days</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-semibold">{activeUsers}</span>
-              <Badge variant="outline" className="text-xs">
-                +8% vs last month
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Pending invitations</CardTitle>
-            <CardDescription>Invites that have not been accepted yet</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-semibold">{pendingInvites}</span>
-              <Badge variant={pendingInvites > 2 ? "secondary" : "outline"} className="text-xs">
-                Review weekly
-              </Badge>
-            </div>
-          </CardContent>
-          <CardFooter className="pt-0">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <UserPlus className="size-4" />3 invites expire this week
-            </div>
-          </CardFooter>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Tenants monitored</CardTitle>
-            <CardDescription>Breakdown by active status</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-semibold">{tenantSummary.total}</span>
-              <Badge variant="outline" className="text-xs">
-                {tenantSummary.active} active
-              </Badge>
-            </div>
-            <div className="grid grid-cols-3 gap-2 text-xs">
-              <span className="rounded-md bg-muted py-1 text-center">
-                Active: {tenantSummary.active}
-              </span>
-              <span className="rounded-md bg-muted py-1 text-center">
-                Pending: {tenantSummary.pending}
-              </span>
-              <span className="rounded-md bg-muted py-1 text-center">
-                Suspended: {tenantSummary.suspended}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">High severity events</CardTitle>
-            <CardDescription>Past 24 hours across all tenants</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-semibold">{auditSeverity.high ?? 0}</span>
-              <Badge variant="destructive" className="text-xs">
-                {auditSeverity.high ? "Action required" : "All clear"}
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
-      </section>
+    <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {stats.map((stat) => (
+          <Card key={stat.label}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {stat.label}
+              </CardTitle>
+              <stat.icon className="size-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-semibold tracking-tight">{stat.value}</div>
+              <p className="text-sm text-muted-foreground">{stat.helper}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-      <section className="grid gap-6 lg:grid-cols-7">
-        <Card className="lg:col-span-4">
-          <CardHeader>
-            <CardTitle>Recent audit activity</CardTitle>
-            <CardDescription>
-              Detailed summary of the most recent security-relevant events.
-            </CardDescription>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card className="lg:col-span-2">
+          <CardHeader className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <CardTitle>Directory snapshot</CardTitle>
+              <CardDescription>Latest lifecycle changes across your organisation.</CardDescription>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => refreshUsers()} disabled={usersLoading}>
+                Refresh
+              </Button>
+              <Button className="gap-2">
+                <UserPlus className="size-4" />
+                Invite user
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Event</TableHead>
-                  <TableHead>Target</TableHead>
-                  <TableHead>Actor</TableHead>
-                  <TableHead className="text-right">When</TableHead>
+                  <TableHead>User</TableHead>
+                  <TableHead>Primary role</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Updated</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {auditEvents.map((event) => (
-                  <TableRow key={event.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {event.severity === "high" ? (
-                          <AlertTriangle className="size-4 text-red-500" />
-                        ) : event.severity === "medium" ? (
-                          <Shield className="size-4 text-amber-500" />
-                        ) : (
-                          <CheckCircle2 className="size-4 text-emerald-500" />
-                        )}
-                        <div>
-                          <div className="font-medium">{event.action}</div>
-                          <p className="text-xs text-muted-foreground">
-                            Severity: {event.severity}
-                          </p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{event.target}</span>
-                        {event.metadata?.tenantId ? (
-                          <span className="text-xs text-muted-foreground">
-                            Tenant: {String(event.metadata.tenantId)}
-                          </span>
-                        ) : null}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{event.actor.name}</span>
-                        <span className="text-xs text-muted-foreground">{event.actor.type}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right text-sm text-muted-foreground">
-                      {formatRelativeTime(event.createdAt)}
+                {usersLoading && (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-sm text-muted-foreground">
+                      Loading directory…
                     </TableCell>
                   </TableRow>
-                ))}
+                )}
+                {!usersLoading && latestUsers.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-sm text-muted-foreground">
+                      No users found for this organisation.
+                    </TableCell>
+                  </TableRow>
+                )}
+                {latestUsers.map((user) => {
+                  const status = getUserStatus(user);
+                  return (
+                    <TableRow key={user.id}>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{user.name || user.email}</span>
+                          <span className="text-sm text-muted-foreground">{user.email}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {user.roles[0]?.name ? (
+                          <Badge variant="outline">{user.roles[0].name}</Badge>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={status.variant}>{status.label}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right text-sm text-muted-foreground">
+                        {formatRelativeTime(user.updatedAt)}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="space-y-1">
+            <CardTitle>Audit pulse</CardTitle>
+            <CardDescription>Latest security-significant events.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {auditLoading && (
+              <p className="text-sm text-muted-foreground">Loading audit activity…</p>
+            )}
+            {!auditLoading && latestAuditLogs.length === 0 && (
+              <p className="text-sm text-muted-foreground">No audit events recorded.</p>
+            )}
+            <div className="space-y-3">
+              {latestAuditLogs.map((event) => (
+                <div key={event.id} className="rounded-lg border p-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium">{event.eventType}</span>
+                    <Badge variant={event.success ? "outline" : "destructive"}>
+                      {event.success ? "Success" : "Failure"}
+                    </Badge>
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground capitalize">
+                    {event.eventCategory} · {event.action} · {formatRelativeTime(event.createdAt)}
+                  </p>
+                  {getAuditReason(event.metadata) && (
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {getAuditReason(event.metadata)}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
           <CardFooter>
-            <Button variant="link" className="ml-auto gap-1 text-sm">
-              View full audit log
-              <ArrowUpRight className="size-4" />
-            </Button>
+            <div className="flex w-full items-center justify-between text-sm text-muted-foreground">
+              <span>auth events: {auditCategoryCounts.auth ?? 0}</span>
+              <span>user events: {auditCategoryCounts.user ?? 0}</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => refreshAudit()}
+                disabled={auditLoading}
+              >
+                Refresh
+              </Button>
+            </div>
           </CardFooter>
         </Card>
+      </div>
 
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle>Role coverage</CardTitle>
-            <CardDescription>Permissions included in each high-priority role.</CardDescription>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <CardTitle>Roles & access</CardTitle>
+              <CardDescription>Most recently updated roles with member counts.</CardDescription>
+            </div>
+            <Button variant="outline" onClick={() => refreshRoles()} disabled={rolesLoading}>
+              Refresh
+            </Button>
           </CardHeader>
           <CardContent className="space-y-4">
-            {roles.map((role) => {
-              const permissionsSet = resolveRolePermissions(role);
-              return (
-                <div key={role.id} className="rounded-lg border p-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className="font-medium leading-none">{role.name}</p>
-                      <p className="text-xs text-muted-foreground">{role.description}</p>
-                    </div>
-                    <Badge variant={role.system ? "default" : "outline"} className="text-xs">
-                      {permissionsSet.size} permissions
-                    </Badge>
+            {rolesLoading && <p className="text-sm text-muted-foreground">Loading roles…</p>}
+            {!rolesLoading && featuredRoles.length === 0 && (
+              <p className="text-sm text-muted-foreground">No roles found.</p>
+            )}
+            {featuredRoles.map((role) => (
+              <div key={role.id} className="flex items-start justify-between rounded-lg border p-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{role.name}</span>
+                    {role.isDefault && <Badge variant="outline">Default</Badge>}
                   </div>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {[...permissionsSet].map((permission) => (
-                      <Badge key={permission} variant="secondary" className="text-xs font-normal">
-                        {permission}
-                      </Badge>
-                    ))}
-                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {role.description ?? "No description provided."}
+                  </p>
                 </div>
-              );
-            })}
+                <Badge variant="secondary">
+                  {(role._count?.users ?? 0).toLocaleString()} members
+                </Badge>
+              </div>
+            ))}
           </CardContent>
         </Card>
-      </section>
 
-      <section className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Recently active users</CardTitle>
-            <CardDescription>Top contributors across all tenants.</CardDescription>
+            <CardTitle>Event categories</CardTitle>
+            <CardDescription>
+              Distribution across the last {auditLogs.length} events.
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {recentlyActiveUsers.map((user) => {
-              const permissionsSet = resolveUserPermissions(user, roles);
-              return (
-                <div
-                  key={user.id}
-                  className="flex flex-wrap items-center justify-between gap-4 rounded-lg border p-3"
-                >
-                  <div>
-                    <p className="font-medium leading-none">{user.fullName}</p>
-                    <p className="text-xs text-muted-foreground">{user.email}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Last seen {formatRelativeTime(user.lastSeenAt)}
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-end gap-1 text-right">
-                    <Badge variant="outline" className="text-xs">
-                      {user.status}
-                    </Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {permissionsSet.size} permissions
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
+          <CardContent className="space-y-3">
+            {Object.keys(auditCategoryCounts).length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                Waiting for audit activity. Events will appear here automatically.
+              </p>
+            )}
+            {Object.entries(auditCategoryCounts).map(([category, count]) => (
+              <div key={category} className="flex items-center justify-between">
+                <span className="capitalize text-sm font-medium">{category}</span>
+                <span className="text-sm text-muted-foreground">{count}</span>
+              </div>
+            ))}
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Operational insights</CardTitle>
-            <CardDescription>Signal-driven recommendations to keep IAM healthy.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4 text-sm">
-            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-900">
-              <p className="font-medium">MFA coverage gap detected</p>
-              <p className="mt-2 text-xs">
-                2 of 4 recent user invitations have not enrolled in multi-factor authentication.
-                Consider enforcing step-up MFA for tenant onboarding.
-              </p>
-            </div>
-            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-emerald-900">
-              <p className="font-medium">System roles aligned</p>
-              <p className="mt-2 text-xs">
-                All critical system roles retain full coverage for lifecycle management workflows.
-              </p>
-            </div>
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-slate-900">
-              <p className="font-medium">Next best action</p>
-              <p className="mt-2 text-xs">
-                {suspendedUsers
-                  ? `${suspendedUsers} user${suspendedUsers === 1 ? " is" : "s are"} currently suspended across tenants. Review the Legacy Platforms workspace and confirm remediation of failed login attempts before reactivation.`
-                  : "All tenant accounts are active. Focus on invitation follow-ups this week."}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </section>
+      </div>
     </div>
   );
 };
@@ -453,14 +287,15 @@ const DashboardPage: NextPageWithLayout = () => {
 DashboardPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <AppLayout
-      title="Identity Operations Overview"
-      description="Monitor tenant activity, critical audit events, and user lifecycle health."
+      title="Identity Overview"
+      description="Monitor user lifecycle, role assignments, and recent audit activity."
+      breadcrumbs={[{ label: "Overview", href: "/" }]}
       actions={
         <div className="flex items-center gap-2">
-          <Button variant="outline">Download report</Button>
+          <Button variant="outline">Export audit log</Button>
           <Button className="gap-2">
-            <UserPlus className="size-4" />
-            Invite user
+            <Shield className="size-4" />
+            Add role
           </Button>
         </div>
       }
@@ -471,3 +306,32 @@ DashboardPage.getLayout = function getLayout(page: ReactElement) {
 };
 
 export default DashboardPage;
+
+function getUserStatus(user: { blockedAt: string | null; emailVerifiedAt: string | null }) {
+  if (user.blockedAt) {
+    return { label: "Blocked", variant: "destructive" as const };
+  }
+
+  if (!user.emailVerifiedAt) {
+    return { label: "Pending", variant: "outline" as const };
+  }
+
+  return { label: "Active", variant: "secondary" as const };
+}
+
+function tallyCategories(events: AuditLogEntry[]) {
+  return events.reduce<Record<string, number>>((acc, event) => {
+    const key = event.eventCategory;
+    acc[key] = (acc[key] ?? 0) + 1;
+    return acc;
+  }, {});
+}
+
+function getAuditReason(metadata: AuditLogEntry["metadata"]) {
+  if (!metadata || typeof metadata !== "object") {
+    return null;
+  }
+
+  const reason = (metadata as Record<string, unknown>).reason;
+  return typeof reason === "string" ? reason : null;
+}
