@@ -2,6 +2,7 @@
 
 import { Fragment, type ReactNode } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { Bell, Filter, Search } from 'lucide-react';
 
 import {
@@ -31,12 +32,13 @@ export type AppHeaderProps = {
 };
 
 export function AppHeader({ title, description, breadcrumbs, actions }: AppHeaderProps) {
+  const router = useRouter();
   const items = breadcrumbs?.length
     ? breadcrumbs
     : [{ label: 'Dashboard', href: '/' }, { label: title }];
 
   return (
-    <header className="flex flex-col gap-4 border-b bg-background/70 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/50">
+    <header className="flex flex-col gap-4 border-b bg-background/70 px-6 py-4 backdrop-blur supports-backdrop-filter:bg-background/50">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <SidebarTrigger className="-ml-2" />
@@ -69,13 +71,24 @@ export function AppHeader({ title, description, breadcrumbs, actions }: AppHeade
         <div className="flex items-center gap-2">
           <div className="relative hidden sm:block">
             <Search className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2" />
-            <Input type="search" placeholder="Search users, roles, policies..." className="pl-9" />
+            <Input
+              type="search"
+              placeholder="Search users, roles, policies..."
+              className="pl-9"
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  const value = event.currentTarget.value.trim();
+                  void router.push(value ? `/search?q=${encodeURIComponent(value)}` : '/search');
+                }
+              }}
+            />
           </div>
           <Button
             variant="outline"
             size="icon"
             className="size-9 sm:hidden"
             aria-label="Open search"
+            onClick={() => void router.push('/search')}
           >
             <Search className="size-4" />
           </Button>

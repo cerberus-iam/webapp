@@ -59,6 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setUser(null);
       setStatus('unauthenticated');
+      setCsrfToken(null);
     }
   }, []);
 

@@ -17,7 +17,7 @@ export function RequireAuth({ children }: RequireAuthProps) {
   useEffect(() => {
     if (status === 'unauthenticated') {
       const returnTo = router.asPath || '/';
-      void router.replace(`/login?returnTo=${encodeURIComponent(returnTo)}`);
+      void router.replace(`/auth/login?returnTo=${encodeURIComponent(returnTo)}`);
     }
   }, [router, status]);
 

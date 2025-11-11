@@ -7,6 +7,10 @@ export type ProblemDetails = {
   [key: string]: unknown;
 };
 
+export type MessageResponse = {
+  message: string;
+};
+
 export type OrganisationSummary = {
   id: string;
   slug: string;
@@ -133,6 +137,37 @@ export type LoginResponse = {
     name: string;
   };
   organisation: OrganisationSummary;
+};
+
+export type AuthRegisterResponse = {
+  message: string;
+  user: {
+    id: string;
+    email: string;
+    name: string;
+  };
+  organisation: OrganisationSummary;
+};
+
+export type AcceptInvitationResponse = {
+  message: string;
+  user: {
+    id: string;
+    email: string;
+    name: string;
+  };
+};
+
+export type InvitationValidationResponse = {
+  email: string;
+  organisation: OrganisationSummary;
+  role?: Pick<RoleSummary, 'id' | 'name' | 'slug'>;
+  invitedBy?: {
+    id: string;
+    email: string | null;
+    name: string | null;
+  };
+  expiresAt: string;
 };
 
 export type OrganisationDetails = {
