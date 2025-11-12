@@ -149,6 +149,37 @@ export type AuthRegisterResponse = {
   organisation: OrganisationSummary;
 };
 
+export type AuthOnboardResponse = {
+  message: string;
+  organisation: OrganisationSummary & {
+    configs: Pick<
+      OrganisationDetails,
+      | 'allowedCallbackUrls'
+      | 'allowedLogoutUrls'
+      | 'allowedOrigins'
+      | 'sessionLifetime'
+      | 'sessionIdleTimeout'
+      | 'requireMfa'
+      | 'allowedMfaMethods'
+      | 'passwordPolicy'
+      | 'tokenLifetimePolicy'
+      | 'branding'
+      | 'metadata'
+    >;
+  };
+  user: {
+    id: string;
+    email: string;
+    name: string;
+  };
+  roles: RoleSummary[];
+  invitationDefaults: {
+    roleId: string | null;
+    expiresInHours: number;
+    maxUses: number | null;
+  };
+};
+
 export type AcceptInvitationResponse = {
   message: string;
   user: {

@@ -174,7 +174,7 @@ export function AppSidebar() {
               try {
                 await logout();
                 toast.success('Signed out');
-                router.replace('/login');
+                router.replace('/auth/login');
               } catch (error) {
                 toast.error(getApiErrorMessage(error, 'Failed to sign out, please try again.'));
               } finally {

@@ -56,7 +56,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await iamApi.auth.logout();
     } catch (error) {
       console.error('Failed to logout', error);
+      // Even if the API call fails, we still clear the client-side state
+      // The user will be forced to re-authenticate on next request
     } finally {
+      // Always clear client state regardless of API response
       setUser(null);
       setStatus('unauthenticated');
       setCsrfToken(null);

@@ -55,7 +55,7 @@ const UserDetailPage: NextPageWithLayout = () => {
   const [selectedRoleId, setSelectedRoleId] = useState('');
   const [isAddingRole, setIsAddingRole] = useState(false);
 
-  const { data: allRoles, isLoading: rolesLoading } = useIamRoles();
+  const { data: allRoles } = useIamRoles();
 
   const availableRoles =
     allRoles?.filter((role) => !user?.roles.some((ur) => ur.id === role.id)) || [];

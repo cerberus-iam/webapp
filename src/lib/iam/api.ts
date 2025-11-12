@@ -1,6 +1,7 @@
 import { apiRequest } from '@/lib/http';
 import type {
   AcceptInvitationResponse,
+  AuthOnboardResponse,
   ApiKeyCreateResponse,
   ApiKeyListResponse,
   AuditLogListResponse,
@@ -44,6 +45,14 @@ type RegisterPayload = {
   password: string;
 };
 
+type OnboardPayload = {
+  organisationName: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  password: string;
+};
+
 type ForgotPasswordPayload = {
   email: string;
 };
@@ -64,7 +73,9 @@ export const iamApi = {
   auth: {
     login: (payload: LoginPayload) =>
       apiRequest<LoginResponse>('/v1/auth/login', { method: 'POST', body: payload }),
-    logout: () => apiRequest<MessageResponse>('/v1/auth/logout', { method: 'POST' }),
+    logout: () => apiRequest<void>('/v1/auth/session', { method: 'DELETE' }),
+    onboard: (payload: OnboardPayload) =>
+      apiRequest<AuthOnboardResponse>('/v1/auth/onboard', { method: 'POST', body: payload }),
     register: (payload: RegisterPayload) =>
       apiRequest<AuthRegisterResponse>('/v1/auth/register', {
         method: 'POST',
