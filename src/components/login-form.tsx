@@ -118,12 +118,14 @@ export function LoginForm({
           setEnrollmentRequired(false);
           setFormState((prev) => ({ ...prev, password: "", mfaToken: "" }));
 
+          // Keep loading state active during redirect
           const queryNext = router.query?.next;
           const destination =
             typeof queryNext === "string" && queryNext
               ? queryNext
               : "/dashboard";
           void router.replace(destination);
+          // Don't set isSubmitting to false - keep loading until redirect completes
           return;
         }
 
