@@ -9,8 +9,8 @@ import { SectionCards } from "@/components/section-cards";
 import data from "../content/data.json";
 
 export default function DashboardPage({
-      user,
-    }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  user,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
   return (
     <AppLayout user={user} breadcrumbs={[{ label: "Dashboard" }]}>
       <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">

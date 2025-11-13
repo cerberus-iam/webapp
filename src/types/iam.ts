@@ -84,3 +84,31 @@ export interface MeProfile {
   roles: RoleSummary[];
   permissions: string[];
 }
+
+export interface TeamSummary {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  name: string | null;
+  phone: string | null;
+  emailVerifiedAt: string | null;
+  mfaEnabled: boolean;
+  blockedAt: string | null;
+  blockedReason: string | null;
+  createdAt: string;
+  updatedAt: string;
+  roles: RoleSummary[];
+  teams: TeamSummary[];
+}
+
+export interface UsersListResponse {
+  data: User[];
+  total: number;
+}
