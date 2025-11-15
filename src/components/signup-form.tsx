@@ -1,9 +1,9 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react';
 
-import Link from 'next/link'
-import { useRouter } from 'next/router'
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/button';
 import {
   Field,
   FieldDescription,
@@ -11,28 +11,28 @@ import {
   FieldGroup,
   FieldLabel,
   FieldSeparator,
-} from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
-import { apiClient } from '@/lib/api/client'
-import { extractFieldErrors, getProblemMessage } from '@/lib/api/error-utils'
-import type { FieldErrorMap } from '@/lib/api/error-utils'
-import { cn } from '@/lib/utils'
-import type { OnboardResponse } from '@/types/iam'
+} from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { apiClient } from '@/lib/api/client';
+import { extractFieldErrors, getProblemMessage } from '@/lib/api/error-utils';
+import type { FieldErrorMap } from '@/lib/api/error-utils';
+import { cn } from '@/lib/utils';
+import type { OnboardResponse } from '@/types/iam';
 
 interface SignupState {
-  organisationName: string
-  firstName: string
-  lastName: string
-  email: string
-  password: string
-  confirmPassword: string
+  organisationName: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
 }
 
 export function SignupForm({
   className,
   ...props
 }: React.ComponentProps<'form'>) {
-  const router = useRouter()
+  const router = useRouter();
 
   const [formState, setFormState] = useState<SignupState>({
     organisationName: '',
@@ -41,49 +41,49 @@ export function SignupForm({
     email: '',
     password: '',
     confirmPassword: '',
-  })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [formError, setFormError] = useState<string | null>(null)
-  const [fieldErrors, setFieldErrors] = useState<FieldErrorMap>({})
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrorMap>({});
 
   const updateField = useCallback(
     <K extends keyof SignupState>(field: K, value: SignupState[K]) => {
-      setFormState((prev) => ({ ...prev, [field]: value }))
+      setFormState((prev) => ({ ...prev, [field]: value }));
     },
     []
-  )
+  );
 
   const resolveFieldErrors = useCallback(
     (field: keyof SignupState | 'form') =>
       fieldErrors[field]?.map((message) => ({ message })),
     [fieldErrors]
-  )
+  );
 
   const formAlert = useMemo(() => {
     if (!formError) {
-      return null
+      return null;
     }
 
     return {
       tone: 'error' as const,
       message: formError,
-    }
-  }, [formError])
+    };
+  }, [formError]);
 
   const handleSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault()
+      event.preventDefault();
 
-      setIsSubmitting(true)
-      setFormError(null)
-      setFieldErrors({})
+      setIsSubmitting(true);
+      setFormError(null);
+      setFieldErrors({});
 
       if (formState.password !== formState.confirmPassword) {
-        const message = 'Passwords do not match.'
-        setFormError(message)
-        setFieldErrors({ confirmPassword: [message] })
-        setIsSubmitting(false)
-        return
+        const message = 'Passwords do not match.';
+        setFormError(message);
+        setFieldErrors({ confirmPassword: [message] });
+        setIsSubmitting(false);
+        return;
       }
 
       const payload = {
@@ -92,7 +92,7 @@ export function SignupForm({
         firstName: formState.firstName.trim(),
         lastName: formState.lastName.trim(),
         password: formState.password,
-      }
+      };
 
       try {
         const result = await apiClient.request<OnboardResponse>(
@@ -101,34 +101,34 @@ export function SignupForm({
             method: 'POST',
             body: payload,
           }
-        )
+        );
 
         if (result.ok) {
-          setFieldErrors({})
-          setFormError(null)
-          void router.replace('/dashboard')
-          return
+          setFieldErrors({});
+          setFormError(null);
+          void router.replace('/dashboard');
+          return;
         }
 
-        const problem = result.error
-        const errors = extractFieldErrors(problem)
-        setFieldErrors(errors)
+        const problem = result.error;
+        const errors = extractFieldErrors(problem);
+        setFieldErrors(errors);
 
-        const messageFromErrors = errors.form?.[0]
-        setFormError(messageFromErrors ?? getProblemMessage(problem))
+        const messageFromErrors = errors.form?.[0];
+        setFormError(messageFromErrors ?? getProblemMessage(problem));
       } catch (error) {
         if (process.env.NODE_ENV !== 'production') {
-          console.error('Onboarding request failed', error)
+          console.error('Onboarding request failed', error);
         }
         setFormError(
           'Unable to create your organisation right now. Please try again.'
-        )
+        );
       } finally {
-        setIsSubmitting(false)
+        setIsSubmitting(false);
       }
     },
     [formState, router]
-  )
+  );
 
   return (
     <form
@@ -287,5 +287,5 @@ export function SignupForm({
         </Field>
       </FieldGroup>
     </form>
-  )
+  );
 }

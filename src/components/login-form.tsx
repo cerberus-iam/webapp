@@ -1,9 +1,9 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react';
 
-import Link from 'next/link'
-import { useRouter } from 'next/router'
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/button';
 import {
   Field,
   FieldDescription,
@@ -11,58 +11,58 @@ import {
   FieldGroup,
   FieldLabel,
   FieldSeparator,
-} from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
-import { apiClient } from '@/lib/api/client'
-import { extractFieldErrors, getProblemMessage } from '@/lib/api/error-utils'
-import type { FieldErrorMap } from '@/lib/api/error-utils'
-import { cn } from '@/lib/utils'
-import type { LoginResponse } from '@/types/iam'
+} from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { apiClient } from '@/lib/api/client';
+import { extractFieldErrors, getProblemMessage } from '@/lib/api/error-utils';
+import type { FieldErrorMap } from '@/lib/api/error-utils';
+import { cn } from '@/lib/utils';
+import type { LoginResponse } from '@/types/iam';
 
 interface FormState {
-  email: string
-  password: string
-  mfaToken: string
+  email: string;
+  password: string;
+  mfaToken: string;
 }
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<'form'>) {
-  const router = useRouter()
+  const router = useRouter();
 
   const [formState, setFormState] = useState<FormState>({
     email: '',
     password: '',
     mfaToken: '',
-  })
-  const [requiresMfa, setRequiresMfa] = useState(false)
-  const [enrollmentRequired, setEnrollmentRequired] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [formError, setFormError] = useState<string | null>(null)
-  const [fieldErrors, setFieldErrors] = useState<FieldErrorMap>({})
+  });
+  const [requiresMfa, setRequiresMfa] = useState(false);
+  const [enrollmentRequired, setEnrollmentRequired] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrorMap>({});
 
-  const { email, password, mfaToken } = formState
+  const { email, password, mfaToken } = formState;
 
   const updateField = useCallback(
     <K extends keyof FormState>(field: K, value: FormState[K]) => {
-      setFormState((prev) => ({ ...prev, [field]: value }))
+      setFormState((prev) => ({ ...prev, [field]: value }));
     },
     []
-  )
+  );
 
   const resolveFieldErrors = useCallback(
     (field: keyof FormState | 'form') =>
       fieldErrors[field]?.map((message) => ({ message })),
     [fieldErrors]
-  )
+  );
 
   const formAlert = useMemo(() => {
     if (formError) {
       return {
         tone: 'error' as const,
         message: formError,
-      }
+      };
     }
 
     if (enrollmentRequired) {
@@ -70,7 +70,7 @@ export function LoginForm({
         tone: 'warning' as const,
         message:
           'Your organisation requires multi-factor authentication. Please enrol before signing in.',
-      }
+      };
     }
 
     if (requiresMfa && !formError) {
@@ -78,29 +78,29 @@ export function LoginForm({
         tone: 'info' as const,
         message:
           'Enter the six-digit code from your authenticator app to continue.',
-      }
+      };
     }
 
-    return null
-  }, [enrollmentRequired, formError, requiresMfa])
+    return null;
+  }, [enrollmentRequired, formError, requiresMfa]);
 
   const handleSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault()
+      event.preventDefault();
 
-      setIsSubmitting(true)
-      setFormError(null)
-      setFieldErrors({})
-      setEnrollmentRequired(false)
+      setIsSubmitting(true);
+      setFormError(null);
+      setFieldErrors({});
+      setEnrollmentRequired(false);
 
       const payload: Record<string, string> = {
         email: email.trim(),
         password,
-      }
+      };
 
-      const trimmedMfa = mfaToken.trim()
+      const trimmedMfa = mfaToken.trim();
       if ((requiresMfa || trimmedMfa) && trimmedMfa) {
-        payload.mfaToken = trimmedMfa
+        payload.mfaToken = trimmedMfa;
       }
 
       try {
@@ -110,51 +110,51 @@ export function LoginForm({
             method: 'POST',
             body: payload,
           }
-        )
+        );
 
         if (result.ok) {
-          setFieldErrors({})
-          setFormError(null)
-          setRequiresMfa(false)
-          setEnrollmentRequired(false)
-          setFormState((prev) => ({ ...prev, password: '', mfaToken: '' }))
+          setFieldErrors({});
+          setFormError(null);
+          setRequiresMfa(false);
+          setEnrollmentRequired(false);
+          setFormState((prev) => ({ ...prev, password: '', mfaToken: '' }));
 
           // Keep loading state active during redirect
-          const queryNext = router.query?.next
+          const queryNext = router.query?.next;
           const destination =
             typeof queryNext === 'string' && queryNext
               ? queryNext
-              : '/dashboard'
-          void router.replace(destination)
+              : '/dashboard';
+          void router.replace(destination);
           // Don't set isSubmitting to false - keep loading until redirect completes
-          return
+          return;
         }
 
-        const problem = result.error
-        const errors = extractFieldErrors(problem)
-        setFieldErrors(errors)
+        const problem = result.error;
+        const errors = extractFieldErrors(problem);
+        setFieldErrors(errors);
 
         if ((problem as Record<string, unknown>).requiresMfa) {
-          setRequiresMfa(true)
+          setRequiresMfa(true);
         }
 
         if ((problem as Record<string, unknown>).requiresEnrollment) {
-          setEnrollmentRequired(true)
+          setEnrollmentRequired(true);
         }
 
-        const messageFromErrors = errors.form?.[0]
-        setFormError(messageFromErrors ?? getProblemMessage(problem))
+        const messageFromErrors = errors.form?.[0];
+        setFormError(messageFromErrors ?? getProblemMessage(problem));
       } catch (error) {
         if (process.env.NODE_ENV !== 'production') {
-          console.error('Login request failed', error)
+          console.error('Login request failed', error);
         }
-        setFormError('Unable to sign in right now. Please try again later.')
+        setFormError('Unable to sign in right now. Please try again later.');
       } finally {
-        setIsSubmitting(false)
+        setIsSubmitting(false);
       }
     },
     [email, password, mfaToken, requiresMfa, router]
-  )
+  );
 
   return (
     <form
@@ -274,5 +274,5 @@ export function LoginForm({
         </Field>
       </FieldGroup>
     </form>
-  )
+  );
 }

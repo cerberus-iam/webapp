@@ -1,15 +1,15 @@
-import type { GetServerSideProps, InferGetServerSidePropsType } from 'next'
+import type { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 
-import { columns } from '@/components/users/columns'
-import { DataTable } from '@/components/users/data-table'
-import { AppLayout } from '@/layouts/app'
-import { createServerApiClient } from '@/lib/auth/client-factory'
-import { requireAuth } from '@/lib/auth/redirects'
-import type { User } from '@/types/iam'
+import { AppLayout } from '@/layouts/app';
+import { createServerApiClient } from '@/lib/auth/client-factory';
+import { requireAuth } from '@/lib/auth/redirects';
+import { columns } from '@/pages/users/columns';
+import { DataTable } from '@/pages/users/data-table';
+import type { User } from '@/types/iam';
 
 interface UsersListResponse {
-  data: User[]
-  total: number
+  data: User[];
+  total: number;
 }
 
 export default function UsersPage({
@@ -19,7 +19,7 @@ export default function UsersPage({
   const breadcrumbs = [
     { label: 'Dashboard', href: '/dashboard' },
     { label: 'Users' },
-  ]
+  ];
 
   return (
     <AppLayout
@@ -53,30 +53,30 @@ export default function UsersPage({
         />
       </div>
     </AppLayout>
-  )
+  );
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) =>
   requireAuth(context, async ({ context }) => {
     try {
-      const client = createServerApiClient(context)
+      const client = createServerApiClient(context);
       const response = await client.request<UsersListResponse>(
         '/v1/admin/users',
         {
           method: 'GET',
         }
-      )
+      );
 
       if (!response.ok) {
-        console.error('Failed to fetch users:', response.error)
-        return { users: [] }
+        console.error('Failed to fetch users:', response.error);
+        return { users: [] };
       }
 
       return {
         users: response.value.data,
-      }
+      };
     } catch (error) {
-      console.error('Error fetching users:', error)
-      return { users: [] }
+      console.error('Error fetching users:', error);
+      return { users: [] };
     }
-  })
+  });

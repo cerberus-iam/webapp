@@ -1,18 +1,18 @@
-'use client'
+'use client';
 
 import {
   IconDots,
   IconMail,
   IconMailCheck,
   IconShieldCheck,
-} from '@tabler/icons-react'
-import { ColumnDef } from '@tanstack/react-table'
-import { format } from 'date-fns'
+} from '@tabler/icons-react';
+import { ColumnDef } from '@tanstack/react-table';
+import { format } from 'date-fns';
 
-import { DataTableColumnHeader } from '@/components/data-table-column-header'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
+import { DataTableColumnHeader } from '@/components/data-table-column-header';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,8 +20,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import type { User } from '@/types/iam'
+} from '@/components/ui/dropdown-menu';
+import type { User } from '@/types/iam';
 
 export const columns: ColumnDef<User>[] = [
   {
@@ -52,7 +52,7 @@ export const columns: ColumnDef<User>[] = [
       <DataTableColumnHeader column={column} title="Email" />
     ),
     cell: ({ row }) => {
-      const user = row.original
+      const user = row.original;
       return (
         <div className="flex items-center gap-2">
           <span className="font-medium">{user.email}</span>
@@ -62,7 +62,7 @@ export const columns: ColumnDef<User>[] = [
             <IconMail className="text-muted-foreground size-4" />
           )}
         </div>
-      )
+      );
     },
   },
   {
@@ -71,13 +71,13 @@ export const columns: ColumnDef<User>[] = [
       <DataTableColumnHeader column={column} title="Name" />
     ),
     cell: ({ row }) => {
-      const user = row.original
+      const user = row.original;
       const displayName =
         user.name ||
         (user.firstName && user.lastName
           ? `${user.firstName} ${user.lastName}`
-          : user.firstName || user.lastName || '-')
-      return <div>{displayName}</div>
+          : user.firstName || user.lastName || '-');
+      return <div>{displayName}</div>;
     },
   },
   {
@@ -85,9 +85,9 @@ export const columns: ColumnDef<User>[] = [
     accessorFn: (row) => row.roles.map((r) => r.name).join(', '),
     header: 'Roles',
     cell: ({ row }) => {
-      const roles = row.original.roles
+      const roles = row.original.roles;
       if (roles.length === 0)
-        return <span className="text-muted-foreground">No roles</span>
+        return <span className="text-muted-foreground">No roles</span>;
       return (
         <div className="flex flex-wrap gap-1">
           {roles.slice(0, 2).map((role) => (
@@ -99,10 +99,10 @@ export const columns: ColumnDef<User>[] = [
             <Badge variant="outline">+{roles.length - 2}</Badge>
           )}
         </div>
-      )
+      );
     },
     filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id))
+      return value.includes(row.getValue(id));
     },
   },
   {
@@ -110,8 +110,8 @@ export const columns: ColumnDef<User>[] = [
     accessorFn: (row) => (row.blockedAt ? 'blocked' : 'active'),
     header: 'Status',
     cell: ({ row }) => {
-      const user = row.original
-      const isBlocked = !!user.blockedAt
+      const user = row.original;
+      const isBlocked = !!user.blockedAt;
       return (
         <Badge
           variant={isBlocked ? 'destructive' : 'outline'}
@@ -123,10 +123,10 @@ export const columns: ColumnDef<User>[] = [
         >
           {isBlocked ? 'Blocked' : 'Active'}
         </Badge>
-      )
+      );
     },
     filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id))
+      return value.includes(row.getValue(id));
     },
   },
   {
@@ -134,7 +134,7 @@ export const columns: ColumnDef<User>[] = [
     accessorKey: 'mfaEnabled',
     header: 'MFA',
     cell: ({ row }) => {
-      const mfaEnabled = row.original.mfaEnabled
+      const mfaEnabled = row.original.mfaEnabled;
       return mfaEnabled ? (
         <Badge variant="outline" className="gap-1">
           <IconShieldCheck className="size-3" />
@@ -142,7 +142,7 @@ export const columns: ColumnDef<User>[] = [
         </Badge>
       ) : (
         <span className="text-muted-foreground text-sm">-</span>
-      )
+      );
     },
   },
   {
@@ -155,13 +155,13 @@ export const columns: ColumnDef<User>[] = [
         <div className="text-sm">
           {format(new Date(row.original.createdAt), 'MMM d, yyyy')}
         </div>
-      )
+      );
     },
   },
   {
     id: 'actions',
     cell: ({ row }) => {
-      const user = row.original
+      const user = row.original;
 
       return (
         <DropdownMenu>
@@ -195,7 +195,7 @@ export const columns: ColumnDef<User>[] = [
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      )
+      );
     },
   },
-]
+];

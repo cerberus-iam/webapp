@@ -1,7 +1,7 @@
-import { GetServerSideProps } from 'next'
+import { GetServerSideProps } from 'next';
 
 export default function Home() {
-  return null
+  return null;
 }
 
 export const getServerSideProps: GetServerSideProps = async () => {
@@ -10,5 +10,5 @@ export const getServerSideProps: GetServerSideProps = async () => {
       destination: '/login',
       permanent: false,
     },
-  }
-}
+  };
+};

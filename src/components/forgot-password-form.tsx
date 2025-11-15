@@ -1,64 +1,64 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react';
 
-import Link from 'next/link'
+import Link from 'next/link';
 
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/button';
 import {
   Field,
   FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
-} from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
-import { apiClient } from '@/lib/api/client'
-import { extractFieldErrors, getProblemMessage } from '@/lib/api/error-utils'
-import type { FieldErrorMap } from '@/lib/api/error-utils'
-import { cn } from '@/lib/utils'
-import type { ForgotPasswordResponse } from '@/types/iam'
+} from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { apiClient } from '@/lib/api/client';
+import { extractFieldErrors, getProblemMessage } from '@/lib/api/error-utils';
+import type { FieldErrorMap } from '@/lib/api/error-utils';
+import { cn } from '@/lib/utils';
+import type { ForgotPasswordResponse } from '@/types/iam';
 
 export function ForgotPasswordForm({
   className,
   ...props
 }: React.ComponentProps<'form'>) {
-  const [email, setEmail] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [formError, setFormError] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const [fieldErrors, setFieldErrors] = useState<FieldErrorMap>({})
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrorMap>({});
 
   const resolveFieldErrors = useCallback(
     (field: 'email' | 'form') =>
       fieldErrors[field]?.map((message) => ({ message })),
     [fieldErrors]
-  )
+  );
 
   const formAlert = useMemo(() => {
     if (formError) {
       return {
         tone: 'error' as const,
         message: formError,
-      }
+      };
     }
 
     if (successMessage) {
       return {
         tone: 'success' as const,
         message: successMessage,
-      }
+      };
     }
 
-    return null
-  }, [formError, successMessage])
+    return null;
+  }, [formError, successMessage]);
 
   const handleSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault()
+      event.preventDefault();
 
-      setIsSubmitting(true)
-      setFormError(null)
-      setSuccessMessage(null)
-      setFieldErrors({})
+      setIsSubmitting(true);
+      setFormError(null);
+      setSuccessMessage(null);
+      setFieldErrors({});
 
       try {
         const result = await apiClient.request<ForgotPasswordResponse>(
@@ -67,35 +67,35 @@ export function ForgotPasswordForm({
             method: 'POST',
             body: { email: email.trim() },
           }
-        )
+        );
 
         if (result.ok) {
           setSuccessMessage(
             result.value.message ||
               'If the email exists, we have sent instructions.'
-          )
-          setFieldErrors({})
-          return
+          );
+          setFieldErrors({});
+          return;
         }
 
-        const problem = result.error
-        const errors = extractFieldErrors(problem)
-        setFieldErrors(errors)
-        const messageFromErrors = errors.form?.[0]
-        setFormError(messageFromErrors ?? getProblemMessage(problem))
+        const problem = result.error;
+        const errors = extractFieldErrors(problem);
+        setFieldErrors(errors);
+        const messageFromErrors = errors.form?.[0];
+        setFormError(messageFromErrors ?? getProblemMessage(problem));
       } catch (error) {
         if (process.env.NODE_ENV !== 'production') {
-          console.error('Forgot password request failed', error)
+          console.error('Forgot password request failed', error);
         }
         setFormError(
           'Unable to process your request right now. Please try again later.'
-        )
+        );
       } finally {
-        setIsSubmitting(false)
+        setIsSubmitting(false);
       }
     },
     [email]
-  )
+  );
 
   return (
     <form
@@ -164,5 +164,5 @@ export function ForgotPasswordForm({
         </FieldDescription>
       </FieldGroup>
     </form>
-  )
+  );
 }

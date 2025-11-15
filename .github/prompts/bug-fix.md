@@ -64,12 +64,12 @@ Use debugging tools to identify the root cause:
 
 ```javascript
 // Add console logs
-console.log('State:', state)
-console.log('Props:', props)
-console.log('API Response:', response)
+console.log('State:', state);
+console.log('Props:', props);
+console.log('API Response:', response);
 
 // Add breakpoints in Sources tab
-debugger
+debugger;
 ```
 
 #### React DevTools

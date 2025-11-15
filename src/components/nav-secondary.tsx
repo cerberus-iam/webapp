@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
-import * as React from 'react'
+import * as React from 'react';
 
-import { type Icon } from '@tabler/icons-react'
+import { type Icon } from '@tabler/icons-react';
 
 import {
   SidebarGroup,
@@ -10,30 +10,30 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from '@/components/ui/sidebar'
+} from '@/components/ui/sidebar';
 
 export function NavSecondary({
   items,
   ...props
 }: {
   items: {
-    title: string
-    url: string
-    icon: Icon
-    onClick?: string
-  }[]
+    title: string;
+    url: string;
+    icon: Icon;
+    onClick?: string;
+  }[];
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
   const handleClick = (item: {
-    title: string
-    url: string
-    onClick?: string
+    title: string;
+    url: string;
+    onClick?: string;
   }) => {
     if (item.onClick === 'openCommandPalette') {
       // TODO: Implement command palette opening
-      console.log('Open command palette')
-      return
+      console.log('Open command palette');
+      return;
     }
-  }
+  };
 
   return (
     <SidebarGroup {...props}>
@@ -44,8 +44,8 @@ export function NavSecondary({
               {item.onClick ? (
                 <SidebarMenuButton
                   onClick={(e) => {
-                    e.preventDefault()
-                    handleClick(item)
+                    e.preventDefault();
+                    handleClick(item);
                   }}
                 >
                   <item.icon />
@@ -64,5 +64,5 @@ export function NavSecondary({
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
-  )
+  );
 }

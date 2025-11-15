@@ -1,1 +1,1 @@
-export { default, getServerSideProps } from './auth/register'
+export { default, getServerSideProps } from './auth/register';

@@ -1,4 +1,4 @@
-import * as React from 'react'
+import * as React from 'react';
 
 import {
   IconBuildingCommunity,
@@ -10,11 +10,11 @@ import {
   IconShield,
   IconUsers,
   IconUsersGroup,
-} from '@tabler/icons-react'
+} from '@tabler/icons-react';
 
-import { NavMain } from '@/components/nav-main'
-import { NavSecondary } from '@/components/nav-secondary'
-import { NavUser } from '@/components/nav-user'
+import { NavMain } from '@/components/nav-main';
+import { NavSecondary } from '@/components/nav-secondary';
+import { NavUser } from '@/components/nav-user';
 import {
   Sidebar,
   SidebarContent,
@@ -23,7 +23,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from '@/components/ui/sidebar'
+} from '@/components/ui/sidebar';
 
 const data = {
   user: {
@@ -81,15 +81,15 @@ const data = {
       onClick: 'openCommandPalette',
     },
   ],
-}
+};
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   user?: {
-    name: string | null
-    firstName?: string | null
-    lastName?: string | null
-    email: string
-  }
+    name: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+    email: string;
+  };
 }
 
 export function AppSidebar({ user, ...props }: AppSidebarProps) {
@@ -102,7 +102,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
         email: user.email,
         avatar: '/avatars/default.jpg',
       }
-    : data.user
+    : data.user;
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -129,5 +129,5 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
         <NavUser user={userData} />
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

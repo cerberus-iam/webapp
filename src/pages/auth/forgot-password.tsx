@@ -1,11 +1,11 @@
 /* eslint-disable @next/next/no-img-element */
-import type { GetServerSideProps } from 'next'
-import Link from 'next/link'
+import type { GetServerSideProps } from 'next';
+import Link from 'next/link';
 
-import { GalleryVerticalEnd } from 'lucide-react'
+import { GalleryVerticalEnd } from 'lucide-react';
 
-import { ForgotPasswordForm } from '@/components/forgot-password-form'
-import { redirectIfAuthenticated } from '@/lib/auth/redirects'
+import { ForgotPasswordForm } from '@/components/forgot-password-form';
+import { redirectIfAuthenticated } from '@/lib/auth/redirects';
 
 export default function ForgotPasswordPage() {
   return (
@@ -33,8 +33,8 @@ export default function ForgotPasswordPage() {
         />
       </div>
     </div>
-  )
+  );
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) =>
-  redirectIfAuthenticated(context)
+  redirectIfAuthenticated(context);

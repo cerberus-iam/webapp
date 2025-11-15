@@ -1,12 +1,12 @@
-import type { GetServerSideProps, InferGetServerSidePropsType } from 'next'
+import type { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 
-import { ChartAreaInteractive } from '@/components/chart-area-interactive'
-import { DataTable } from '@/components/data-table'
-import { SectionCards } from '@/components/section-cards'
-import { AppLayout } from '@/layouts/app'
-import { requireAuth } from '@/lib/auth/redirects'
+import { ChartAreaInteractive } from '@/components/chart-area-interactive';
+import { DataTable } from '@/components/data-table';
+import { SectionCards } from '@/components/section-cards';
+import { AppLayout } from '@/layouts/app';
+import { requireAuth } from '@/lib/auth/redirects';
 
-import data from '../content/data.json'
+import data from '../content/data.json';
 
 export default function DashboardPage({
   user,
@@ -21,8 +21,8 @@ export default function DashboardPage({
         <DataTable data={data} />
       </div>
     </AppLayout>
-  )
+  );
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) =>
-  requireAuth(context, async () => ({}))
+  requireAuth(context, async () => ({}));

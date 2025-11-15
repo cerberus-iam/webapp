@@ -1,23 +1,23 @@
-import type { ReactNode } from 'react'
+import type { ReactNode } from 'react';
 
-import { AppSidebar } from '@/components/app-sidebar'
-import { SiteHeader } from '@/components/site-header'
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
+import { AppSidebar } from '@/components/app-sidebar';
+import { SiteHeader } from '@/components/site-header';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 
 interface AppLayoutProps {
-  children: ReactNode
+  children: ReactNode;
   user?: {
-    name: string | null
-    firstName?: string | null
-    lastName?: string | null
-    email: string
-  }
+    name: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+    email: string;
+  };
   breadcrumbs?: Array<{
-    label: string
-    href?: string
-  }>
-  title?: string
-  docsUrl?: string
+    label: string;
+    href?: string;
+  }>;
+  title?: string;
+  docsUrl?: string;
 }
 
 export function AppLayout({
@@ -50,5 +50,5 @@ export function AppLayout({
         </div>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }

@@ -1,6 +1,6 @@
-import Link from 'next/link'
+import Link from 'next/link';
 
-import { IconExternalLink } from '@tabler/icons-react'
+import { IconExternalLink } from '@tabler/icons-react';
 
 import {
   Breadcrumb,
@@ -9,18 +9,18 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
-import { SidebarTrigger } from '@/components/ui/sidebar'
+} from '@/components/ui/breadcrumb';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 
 interface SiteHeaderProps {
   breadcrumbs?: Array<{
-    label: string
-    href?: string
-  }>
-  title: string
-  docsUrl?: string
+    label: string;
+    href?: string;
+  }>;
+  title: string;
+  docsUrl?: string;
 }
 
 export function SiteHeader({
@@ -75,5 +75,5 @@ export function SiteHeader({
         </div>
       </div>
     </header>
-  )
+  );
 }
