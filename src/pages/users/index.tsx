@@ -1,24 +1,26 @@
-import type { GetServerSideProps, InferGetServerSidePropsType } from "next";
-import { AppLayout } from "@/layouts/app";
-import { requireAuth } from "@/lib/auth/redirects";
-import { createServerApiClient } from "@/lib/auth/client-factory";
-import { DataTable } from "./data-table";
-import { columns } from "./columns";
-import type { User } from "@/types/iam";
+import type { GetServerSideProps, InferGetServerSidePropsType } from 'next'
+
+import { AppLayout } from '@/layouts/app'
+import { createServerApiClient } from '@/lib/auth/client-factory'
+import { requireAuth } from '@/lib/auth/redirects'
+import type { User } from '@/types/iam'
+
+import { columns } from './columns'
+import { DataTable } from './data-table'
 
 interface UsersListResponse {
-  data: User[];
-  total: number;
+  data: User[]
+  total: number
 }
 
 export default function UsersPage({
-      user,
-      users,
-    }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  user,
+  users,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const breadcrumbs = [
-    { label: "Dashboard", href: "/dashboard" },
-    { label: "Users" },
-  ];
+    { label: 'Dashboard', href: '/dashboard' },
+    { label: 'Users' },
+  ]
 
   return (
     <AppLayout
@@ -27,10 +29,10 @@ export default function UsersPage({
       title="Users"
       docsUrl="https://docs.cerberus-iam.com/admin/users"
     >
-      <div className="space-y-4 px-4 lg:px-6 py-5">
+      <div className="space-y-4 px-4 py-5 lg:px-6">
         <div>
           <h3 className="text-lg font-medium">User Management</h3>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Manage users, roles, and permissions for your organization.
           </p>
         </div>
@@ -41,41 +43,41 @@ export default function UsersPage({
           searchPlaceholder="Search by email..."
           facetedFilters={[
             {
-              columnId: "status",
-              title: "Status",
+              columnId: 'status',
+              title: 'Status',
               options: [
-                { label: "Active", value: "active" },
-                { label: "Blocked", value: "blocked" },
+                { label: 'Active', value: 'active' },
+                { label: 'Blocked', value: 'blocked' },
               ],
             },
           ]}
         />
       </div>
     </AppLayout>
-  );
+  )
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) =>
   requireAuth(context, async ({ context }) => {
     try {
-      const client = createServerApiClient(context);
+      const client = createServerApiClient(context)
       const response = await client.request<UsersListResponse>(
-        "/v1/admin/users",
+        '/v1/admin/users',
         {
-          method: "GET",
+          method: 'GET',
         }
-      );
+      )
 
       if (!response.ok) {
-        console.error("Failed to fetch users:", response.error);
-        return { users: [] };
+        console.error('Failed to fetch users:', response.error)
+        return { users: [] }
       }
 
       return {
         users: response.value.data,
-      };
+      }
     } catch (error) {
-      console.error("Error fetching users:", error);
-      return { users: [] };
+      console.error('Error fetching users:', error)
+      return { users: [] }
     }
-  });
+  })

@@ -1,13 +1,9 @@
-import Link from "next/link";
-import { useRouter } from "next/router";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from 'react'
 
-import { apiClient } from "@/lib/api/client";
-import { extractFieldErrors, getProblemMessage } from "@/lib/api/error-utils";
-import type { FieldErrorMap } from "@/lib/api/error-utils";
-import { cn } from "@/lib/utils";
-import type { LoginResponse } from "@/types/iam";
-import { Button } from "@/components/ui/button";
+import Link from 'next/link'
+import { useRouter } from 'next/router'
+
+import { Button } from '@/components/ui/button'
 import {
   Field,
   FieldDescription,
@@ -15,149 +11,154 @@ import {
   FieldGroup,
   FieldLabel,
   FieldSeparator,
-} from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import { apiClient } from '@/lib/api/client'
+import { extractFieldErrors, getProblemMessage } from '@/lib/api/error-utils'
+import type { FieldErrorMap } from '@/lib/api/error-utils'
+import { cn } from '@/lib/utils'
+import type { LoginResponse } from '@/types/iam'
 
 interface FormState {
-  email: string;
-  password: string;
-  mfaToken: string;
+  email: string
+  password: string
+  mfaToken: string
 }
 
 export function LoginForm({
   className,
   ...props
-}: React.ComponentProps<"form">) {
-  const router = useRouter();
+}: React.ComponentProps<'form'>) {
+  const router = useRouter()
 
   const [formState, setFormState] = useState<FormState>({
-    email: "",
-    password: "",
-    mfaToken: "",
-  });
-  const [requiresMfa, setRequiresMfa] = useState(false);
-  const [enrollmentRequired, setEnrollmentRequired] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<FieldErrorMap>({});
+    email: '',
+    password: '',
+    mfaToken: '',
+  })
+  const [requiresMfa, setRequiresMfa] = useState(false)
+  const [enrollmentRequired, setEnrollmentRequired] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<FieldErrorMap>({})
 
-  const { email, password, mfaToken } = formState;
+  const { email, password, mfaToken } = formState
 
   const updateField = useCallback(
     <K extends keyof FormState>(field: K, value: FormState[K]) => {
-      setFormState((prev) => ({ ...prev, [field]: value }));
+      setFormState((prev) => ({ ...prev, [field]: value }))
     },
     []
-  );
+  )
 
   const resolveFieldErrors = useCallback(
-    (field: keyof FormState | "form") =>
+    (field: keyof FormState | 'form') =>
       fieldErrors[field]?.map((message) => ({ message })),
     [fieldErrors]
-  );
+  )
 
   const formAlert = useMemo(() => {
     if (formError) {
       return {
-        tone: "error" as const,
+        tone: 'error' as const,
         message: formError,
-      };
+      }
     }
 
     if (enrollmentRequired) {
       return {
-        tone: "warning" as const,
+        tone: 'warning' as const,
         message:
-          "Your organisation requires multi-factor authentication. Please enrol before signing in.",
-      };
+          'Your organisation requires multi-factor authentication. Please enrol before signing in.',
+      }
     }
 
     if (requiresMfa && !formError) {
       return {
-        tone: "info" as const,
+        tone: 'info' as const,
         message:
-          "Enter the six-digit code from your authenticator app to continue.",
-      };
+          'Enter the six-digit code from your authenticator app to continue.',
+      }
     }
 
-    return null;
-  }, [enrollmentRequired, formError, requiresMfa]);
+    return null
+  }, [enrollmentRequired, formError, requiresMfa])
 
   const handleSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
+      event.preventDefault()
 
-      setIsSubmitting(true);
-      setFormError(null);
-      setFieldErrors({});
-      setEnrollmentRequired(false);
+      setIsSubmitting(true)
+      setFormError(null)
+      setFieldErrors({})
+      setEnrollmentRequired(false)
 
       const payload: Record<string, string> = {
         email: email.trim(),
         password,
-      };
+      }
 
-      const trimmedMfa = mfaToken.trim();
+      const trimmedMfa = mfaToken.trim()
       if ((requiresMfa || trimmedMfa) && trimmedMfa) {
-        payload.mfaToken = trimmedMfa;
+        payload.mfaToken = trimmedMfa
       }
 
       try {
         const result = await apiClient.request<LoginResponse>(
-          "/v1/auth/login",
+          '/v1/auth/login',
           {
-            method: "POST",
+            method: 'POST',
             body: payload,
           }
-        );
+        )
 
         if (result.ok) {
-          setFieldErrors({});
-          setFormError(null);
-          setRequiresMfa(false);
-          setEnrollmentRequired(false);
-          setFormState((prev) => ({ ...prev, password: "", mfaToken: "" }));
+          setFieldErrors({})
+          setFormError(null)
+          setRequiresMfa(false)
+          setEnrollmentRequired(false)
+          setFormState((prev) => ({ ...prev, password: '', mfaToken: '' }))
 
           // Keep loading state active during redirect
-          const queryNext = router.query?.next;
+          const queryNext = router.query?.next
           const destination =
-            typeof queryNext === "string" && queryNext
+            typeof queryNext === 'string' && queryNext
               ? queryNext
-              : "/dashboard";
-          void router.replace(destination);
+              : '/dashboard'
+          void router.replace(destination)
           // Don't set isSubmitting to false - keep loading until redirect completes
-          return;
+          return
         }
 
-        const problem = result.error;
-        const errors = extractFieldErrors(problem);
-        setFieldErrors(errors);
+        const problem = result.error
+        const errors = extractFieldErrors(problem)
+        setFieldErrors(errors)
 
         if ((problem as Record<string, unknown>).requiresMfa) {
-          setRequiresMfa(true);
+          setRequiresMfa(true)
         }
 
         if ((problem as Record<string, unknown>).requiresEnrollment) {
-          setEnrollmentRequired(true);
+          setEnrollmentRequired(true)
         }
 
-        const messageFromErrors = errors.form?.[0];
-        setFormError(messageFromErrors ?? getProblemMessage(problem));
+        const messageFromErrors = errors.form?.[0]
+        setFormError(messageFromErrors ?? getProblemMessage(problem))
       } catch (error) {
-        if (process.env.NODE_ENV !== "production") {
-          console.error("Login request failed", error);
+        if (process.env.NODE_ENV !== 'production') {
+          console.error('Login request failed', error)
         }
-        setFormError("Unable to sign in right now. Please try again later.");
+        setFormError('Unable to sign in right now. Please try again later.')
       } finally {
-        setIsSubmitting(false);
+        setIsSubmitting(false)
       }
     },
     [email, password, mfaToken, requiresMfa, router]
-  );
+  )
 
   return (
     <form
-      className={cn("flex flex-col gap-6", className)}
+      className={cn('flex flex-col gap-6', className)}
       onSubmit={handleSubmit}
       {...props}
     >
@@ -173,13 +174,13 @@ export function LoginForm({
           <div
             role="alert"
             className={cn(
-              "rounded-md border px-3 py-2 text-sm",
-              formAlert.tone === "error" &&
-                "border-destructive text-destructive bg-destructive/10",
-              formAlert.tone === "warning" &&
-                "border-amber-500 text-amber-600 bg-amber-500/10",
-              formAlert.tone === "info" &&
-                "border-primary text-primary bg-primary/10"
+              'rounded-md border px-3 py-2 text-sm',
+              formAlert.tone === 'error' &&
+                'border-destructive text-destructive bg-destructive/10',
+              formAlert.tone === 'warning' &&
+                'border-amber-500 bg-amber-500/10 text-amber-600',
+              formAlert.tone === 'info' &&
+                'border-primary text-primary bg-primary/10'
             )}
           >
             {formAlert.message}
@@ -195,9 +196,9 @@ export function LoginForm({
             inputMode="email"
             required
             value={email}
-            onChange={(event) => updateField("email", event.target.value)}
+            onChange={(event) => updateField('email', event.target.value)}
           />
-          <FieldError errors={resolveFieldErrors("email") ?? undefined} />
+          <FieldError errors={resolveFieldErrors('email') ?? undefined} />
         </Field>
 
         <Field data-invalid={Boolean(fieldErrors.password?.length)}>
@@ -216,9 +217,9 @@ export function LoginForm({
             autoComplete="current-password"
             required
             value={password}
-            onChange={(event) => updateField("password", event.target.value)}
+            onChange={(event) => updateField('password', event.target.value)}
           />
-          <FieldError errors={resolveFieldErrors("password") ?? undefined} />
+          <FieldError errors={resolveFieldErrors('password') ?? undefined} />
         </Field>
 
         {(requiresMfa || mfaToken.length > 0) && (
@@ -234,12 +235,12 @@ export function LoginForm({
               placeholder="123456"
               required={requiresMfa}
               value={mfaToken}
-              onChange={(event) => updateField("mfaToken", event.target.value)}
+              onChange={(event) => updateField('mfaToken', event.target.value)}
             />
             <FieldDescription>
               Enter the six-digit verification code from your authenticator app.
             </FieldDescription>
-            <FieldError errors={resolveFieldErrors("mfaToken") ?? undefined} />
+            <FieldError errors={resolveFieldErrors('mfaToken') ?? undefined} />
           </Field>
         )}
 
@@ -249,7 +250,7 @@ export function LoginForm({
             disabled={isSubmitting}
             aria-busy={isSubmitting}
           >
-            {isSubmitting ? "Signing in…" : "Login"}
+            {isSubmitting ? 'Signing in…' : 'Login'}
           </Button>
         </Field>
 
@@ -265,7 +266,7 @@ export function LoginForm({
             Login with GitHub
           </Button>
           <FieldDescription className="text-center">
-            Don&apos;t have an account?{" "}
+            Don&apos;t have an account?{' '}
             <Link href="/register" className="underline underline-offset-4">
               Create one
             </Link>
@@ -273,5 +274,5 @@ export function LoginForm({
         </Field>
       </FieldGroup>
     </form>
-  );
+  )
 }

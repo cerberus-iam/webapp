@@ -1,5 +1,7 @@
-import * as React from "react";
+import * as React from 'react'
+
 import {
+  IconBuildingCommunity,
   IconDashboard,
   IconHelp,
   IconInnerShadowTop,
@@ -8,12 +10,11 @@ import {
   IconShield,
   IconUsers,
   IconUsersGroup,
-  IconBuildingCommunity,
-} from "@tabler/icons-react";
+} from '@tabler/icons-react'
 
-import { NavMain } from "@/components/nav-main";
-import { NavSecondary } from "@/components/nav-secondary";
-import { NavUser } from "@/components/nav-user";
+import { NavMain } from '@/components/nav-main'
+import { NavSecondary } from '@/components/nav-secondary'
+import { NavUser } from '@/components/nav-user'
 import {
   Sidebar,
   SidebarContent,
@@ -22,73 +23,73 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar";
+} from '@/components/ui/sidebar'
 
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+    name: 'shadcn',
+    email: 'm@example.com',
+    avatar: '/avatars/shadcn.jpg',
   },
   navMain: [
     {
-      title: "Dashboard",
-      url: "/dashboard",
+      title: 'Dashboard',
+      url: '/dashboard',
       icon: IconDashboard,
     },
     {
-      title: "Users",
-      url: "/users",
+      title: 'Users',
+      url: '/users',
       icon: IconUsers,
     },
     {
-      title: "Roles",
-      url: "/roles",
+      title: 'Roles',
+      url: '/roles',
       icon: IconUsersGroup,
     },
     {
-      title: "Policies",
-      url: "/policies",
+      title: 'Policies',
+      url: '/policies',
       icon: IconShield,
     },
     {
-      title: "Teams",
-      url: "/teams",
+      title: 'Teams',
+      url: '/teams',
       icon: IconUsersGroup,
     },
   ],
   navSecondary: [
     {
-      title: "Organisation Profile",
-      url: "/organisation",
+      title: 'Organisation Profile',
+      url: '/organisation',
       icon: IconBuildingCommunity,
     },
     {
-      title: "Settings",
-      url: "/settings",
+      title: 'Settings',
+      url: '/settings',
       icon: IconSettings,
     },
     {
-      title: "Get Help",
-      url: "/help",
+      title: 'Get Help',
+      url: '/help',
       icon: IconHelp,
     },
     {
-      title: "Search",
-      url: "#",
+      title: 'Search',
+      url: '#',
       icon: IconSearch,
-      onClick: "openCommandPalette",
+      onClick: 'openCommandPalette',
     },
   ],
-};
+}
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   user?: {
-    name: string | null;
-    firstName?: string | null;
-    lastName?: string | null;
-    email: string;
-  };
+    name: string | null
+    firstName?: string | null
+    lastName?: string | null
+    email: string
+  }
 }
 
 export function AppSidebar({ user, ...props }: AppSidebarProps) {
@@ -96,12 +97,12 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
     ? {
         name:
           user.name ||
-          `${user.firstName || ""} ${user.lastName || ""}`.trim() ||
+          `${user.firstName || ''} ${user.lastName || ''}`.trim() ||
           user.email,
         email: user.email,
-        avatar: "/avatars/default.jpg",
+        avatar: '/avatars/default.jpg',
       }
-    : data.user;
+    : data.user
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -128,5 +129,5 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
         <NavUser user={userData} />
       </SidebarFooter>
     </Sidebar>
-  );
+  )
 }

@@ -1,18 +1,18 @@
-"use client";
+'use client'
 
-import { ColumnDef } from "@tanstack/react-table";
 import {
   IconDots,
-  IconShieldCheck,
   IconMail,
   IconMailCheck,
-} from "@tabler/icons-react";
-import { format } from "date-fns";
+  IconShieldCheck,
+} from '@tabler/icons-react'
+import { ColumnDef } from '@tanstack/react-table'
+import { format } from 'date-fns'
 
-import type { User } from "@/types/iam";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { DataTableColumnHeader } from '@/components/data-table-column-header'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,17 +20,17 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { DataTableColumnHeader } from "@/components/data-table-column-header";
+} from '@/components/ui/dropdown-menu'
+import type { User } from '@/types/iam'
 
 export const columns: ColumnDef<User>[] = [
   {
-    id: "select",
+    id: 'select',
     header: ({ table }) => (
       <Checkbox
         checked={
           table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
+          (table.getIsSomePageRowsSelected() && 'indeterminate')
         }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
@@ -47,47 +47,47 @@ export const columns: ColumnDef<User>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "email",
+    accessorKey: 'email',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Email" />
     ),
     cell: ({ row }) => {
-      const user = row.original;
+      const user = row.original
       return (
         <div className="flex items-center gap-2">
           <span className="font-medium">{user.email}</span>
           {user.emailVerifiedAt ? (
-            <IconMailCheck className="text-green-600 size-4" />
+            <IconMailCheck className="size-4 text-green-600" />
           ) : (
             <IconMail className="text-muted-foreground size-4" />
           )}
         </div>
-      );
+      )
     },
   },
   {
-    accessorKey: "name",
+    accessorKey: 'name',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Name" />
     ),
     cell: ({ row }) => {
-      const user = row.original;
+      const user = row.original
       const displayName =
         user.name ||
         (user.firstName && user.lastName
           ? `${user.firstName} ${user.lastName}`
-          : user.firstName || user.lastName || "-");
-      return <div>{displayName}</div>;
+          : user.firstName || user.lastName || '-')
+      return <div>{displayName}</div>
     },
   },
   {
-    id: "roles",
-    accessorFn: (row) => row.roles.map((r) => r.name).join(", "),
-    header: "Roles",
+    id: 'roles',
+    accessorFn: (row) => row.roles.map((r) => r.name).join(', '),
+    header: 'Roles',
     cell: ({ row }) => {
-      const roles = row.original.roles;
+      const roles = row.original.roles
       if (roles.length === 0)
-        return <span className="text-muted-foreground">No roles</span>;
+        return <span className="text-muted-foreground">No roles</span>
       return (
         <div className="flex flex-wrap gap-1">
           {roles.slice(0, 2).map((role) => (
@@ -99,42 +99,42 @@ export const columns: ColumnDef<User>[] = [
             <Badge variant="outline">+{roles.length - 2}</Badge>
           )}
         </div>
-      );
+      )
     },
     filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
+      return value.includes(row.getValue(id))
     },
   },
   {
-    id: "status",
-    accessorFn: (row) => (row.blockedAt ? "blocked" : "active"),
-    header: "Status",
+    id: 'status',
+    accessorFn: (row) => (row.blockedAt ? 'blocked' : 'active'),
+    header: 'Status',
     cell: ({ row }) => {
-      const user = row.original;
-      const isBlocked = !!user.blockedAt;
+      const user = row.original
+      const isBlocked = !!user.blockedAt
       return (
         <Badge
-          variant={isBlocked ? "destructive" : "outline"}
+          variant={isBlocked ? 'destructive' : 'outline'}
           className={
             isBlocked
-              ? ""
-              : "border-green-600 text-green-700 dark:text-green-400"
+              ? ''
+              : 'border-green-600 text-green-700 dark:text-green-400'
           }
         >
-          {isBlocked ? "Blocked" : "Active"}
+          {isBlocked ? 'Blocked' : 'Active'}
         </Badge>
-      );
+      )
     },
     filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
+      return value.includes(row.getValue(id))
     },
   },
   {
-    id: "mfa",
-    accessorKey: "mfaEnabled",
-    header: "MFA",
+    id: 'mfa',
+    accessorKey: 'mfaEnabled',
+    header: 'MFA',
     cell: ({ row }) => {
-      const mfaEnabled = row.original.mfaEnabled;
+      const mfaEnabled = row.original.mfaEnabled
       return mfaEnabled ? (
         <Badge variant="outline" className="gap-1">
           <IconShieldCheck className="size-3" />
@@ -142,26 +142,26 @@ export const columns: ColumnDef<User>[] = [
         </Badge>
       ) : (
         <span className="text-muted-foreground text-sm">-</span>
-      );
+      )
     },
   },
   {
-    accessorKey: "createdAt",
+    accessorKey: 'createdAt',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Created" />
     ),
     cell: ({ row }) => {
       return (
         <div className="text-sm">
-          {format(new Date(row.original.createdAt), "MMM d, yyyy")}
+          {format(new Date(row.original.createdAt), 'MMM d, yyyy')}
         </div>
-      );
+      )
     },
   },
   {
-    id: "actions",
+    id: 'actions',
     cell: ({ row }) => {
-      const user = row.original;
+      const user = row.original
 
       return (
         <DropdownMenu>
@@ -195,7 +195,7 @@ export const columns: ColumnDef<User>[] = [
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      );
+      )
     },
   },
-];
+]

@@ -1,5 +1,6 @@
-import { IconExternalLink } from "@tabler/icons-react";
-import Link from "next/link";
+import Link from 'next/link'
+
+import { IconExternalLink } from '@tabler/icons-react'
 
 import {
   Breadcrumb,
@@ -8,24 +9,26 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { SidebarTrigger } from "@/components/ui/sidebar";
+} from '@/components/ui/breadcrumb'
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
+import { SidebarTrigger } from '@/components/ui/sidebar'
 
 interface SiteHeaderProps {
   breadcrumbs?: Array<{
-    label: string;
-    href?: string;
-  }>;
-  title: string;
-  docsUrl?: string;
+    label: string
+    href?: string
+  }>
+  title: string
+  docsUrl?: string
 }
 
 export function SiteHeader({
   breadcrumbs = [],
+  // title prop is part of the interface but not used in current implementation
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   title,
-  docsUrl = "https://docs.cerberus-iam.com",
+  docsUrl = 'https://docs.cerberus-iam.com',
 }: SiteHeaderProps) {
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
@@ -72,5 +75,5 @@ export function SiteHeader({
         </div>
       </div>
     </header>
-  );
+  )
 }

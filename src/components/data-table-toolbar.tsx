@@ -1,9 +1,10 @@
-import * as React from "react";
-import { IconX, IconChevronDown } from "@tabler/icons-react";
-import { Table } from "@tanstack/react-table";
+import * as React from 'react'
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { IconChevronDown, IconX } from '@tabler/icons-react'
+import { Table } from '@tanstack/react-table'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -11,34 +12,34 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
+} from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
 
 export interface DataTableFacetedFilterOption {
-  label: string;
-  value: string;
+  label: string
+  value: string
 }
 
 export interface DataTableFacetedFilter {
-  columnId: string;
-  title: string;
-  options: DataTableFacetedFilterOption[];
+  columnId: string
+  title: string
+  options: DataTableFacetedFilterOption[]
 }
 
 interface DataTableToolbarProps<TData> {
-  table: Table<TData>;
-  searchKey?: string;
-  searchPlaceholder?: string;
-  facetedFilters?: DataTableFacetedFilter[];
+  table: Table<TData>
+  searchKey?: string
+  searchPlaceholder?: string
+  facetedFilters?: DataTableFacetedFilter[]
 }
 
 export function DataTableToolbar<TData>({
   table,
   searchKey,
-  searchPlaceholder = "Search...",
+  searchPlaceholder = 'Search...',
   facetedFilters,
 }: DataTableToolbarProps<TData>) {
-  const isFiltered = table.getState().columnFilters.length > 0;
+  const isFiltered = table.getState().columnFilters.length > 0
 
   return (
     <div className="flex items-center justify-between">
@@ -47,7 +48,7 @@ export function DataTableToolbar<TData>({
           <Input
             placeholder={searchPlaceholder}
             value={
-              (table.getColumn(searchKey)?.getFilterValue() as string) ?? ""
+              (table.getColumn(searchKey)?.getFilterValue() as string) ?? ''
             }
             onChange={(event) =>
               table.getColumn(searchKey)?.setFilterValue(event.target.value)
@@ -56,11 +57,11 @@ export function DataTableToolbar<TData>({
           />
         )}
         {facetedFilters?.map((filter) => {
-          const column = table.getColumn(filter.columnId);
-          if (!column) return null;
+          const column = table.getColumn(filter.columnId)
+          if (!column) return null
 
-          const selectedValues = new Set(column.getFilterValue() as string[]);
-          const facets = column.getFacetedUniqueValues();
+          const selectedValues = new Set(column.getFilterValue() as string[])
+          const facets = column.getFacetedUniqueValues()
 
           return (
             <DropdownMenu key={filter.columnId}>
@@ -73,7 +74,7 @@ export function DataTableToolbar<TData>({
                   {filter.title}
                   {selectedValues?.size > 0 && (
                     <>
-                      <span className="mx-2 h-4 w-px bg-border" />
+                      <span className="bg-border mx-2 h-4 w-px" />
                       <Badge
                         variant="secondary"
                         className="rounded-sm px-1 font-normal"
@@ -89,8 +90,8 @@ export function DataTableToolbar<TData>({
                 <DropdownMenuLabel>{filter.title}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {filter.options.map((option) => {
-                  const isSelected = selectedValues.has(option.value);
-                  const count = facets?.get(option.value);
+                  const isSelected = selectedValues.has(option.value)
+                  const count = facets?.get(option.value)
 
                   return (
                     <DropdownMenuCheckboxItem
@@ -98,24 +99,24 @@ export function DataTableToolbar<TData>({
                       checked={isSelected}
                       onCheckedChange={(checked) => {
                         if (checked) {
-                          selectedValues.add(option.value);
+                          selectedValues.add(option.value)
                         } else {
-                          selectedValues.delete(option.value);
+                          selectedValues.delete(option.value)
                         }
-                        const filterValues = Array.from(selectedValues);
+                        const filterValues = Array.from(selectedValues)
                         column.setFilterValue(
                           filterValues.length ? filterValues : undefined
-                        );
+                        )
                       }}
                     >
                       {option.label}
                       {count !== undefined && (
-                        <span className="ml-auto text-xs text-muted-foreground">
+                        <span className="text-muted-foreground ml-auto text-xs">
                           {count}
                         </span>
                       )}
                     </DropdownMenuCheckboxItem>
-                  );
+                  )
                 })}
                 {selectedValues.size > 0 && (
                   <>
@@ -131,7 +132,7 @@ export function DataTableToolbar<TData>({
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
-          );
+          )
         })}
         {isFiltered && (
           <Button
@@ -145,5 +146,5 @@ export function DataTableToolbar<TData>({
         )}
       </div>
     </div>
-  );
+  )
 }

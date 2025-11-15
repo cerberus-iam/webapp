@@ -1,0 +1,39 @@
+# CODEOWNERS for Cerberus IAM Frontend
+#
+# These owners will be requested for review when someone opens a pull request
+# that modifies files in the specified paths.
+#
+# More info: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything in the repo
+* @cerberus-iam/cerberus-frontend-team
+
+# Authentication & security related code
+/src/lib/auth/ @cerberus-iam/security-team
+/src/pages/login.tsx @cerberus-iam/security-team
+/src/pages/register.tsx @cerberus-iam/security-team
+/src/pages/forgot-password.tsx @cerberus-iam/security-team
+
+# API integration
+/src/lib/api/ @cerberus-iam/backend-team @cerberus-iam/frontend-team
+
+# User management features
+/src/pages/users/ @cerberus-iam/admin-team
+
+# UI components
+/src/components/ui/ @cerberus-iam/ui-team
+
+# Configuration files
+/.github/ @cerberus-iam/devops-team
+/package.json @cerberus-iam/frontend-leads
+/tsconfig.json @cerberus-iam/frontend-leads
+next.config.ts @cerberus-iam/frontend-leads
+
+# CI/CD and deployment
+/.github/workflows/ @cerberus-iam/devops-team
+/Dockerfile @cerberus-iam/devops-team
+
+# Documentation
+/README.md @cerberus-iam/frontend-leads
+/CONTRIBUTING.md @cerberus-iam/frontend-leads
+/docs/ @cerberus-iam/frontend-team

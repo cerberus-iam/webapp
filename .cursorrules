@@ -1,0 +1,297 @@
+# Cerberus IAM Frontend - Cursor AI Rules
+
+## Project Overview
+
+This is **Cerberus IAM Frontend**, a Next.js TypeScript application that serves as the web UI for Cerberus IAM (Identity & Access Management platform). This frontend communicates with the Cerberus IAM API backend for all authentication and user management operations.
+
+### Tech Stack
+- **Framework**: Next.js 16 (Pages Router, NOT App Router)
+- **Language**: TypeScript 5 (strict mode)
+- **UI**: React 19 + Radix UI + shadcn/ui
+- **Styling**: Tailwind CSS 4
+- **Testing**: Jest + React Testing Library + Playwright
+- **Validation**: Zod schemas
+- **Build**: Next.js bundler (Turbopack/Webpack)
+
+## Architecture Principles
+
+1. **Pages Router**: We use Next.js Pages Router (`src/pages/`), not App Router
+2. **Separation of Concerns**: UI components, business logic, and API calls are separated
+3. **Type Safety**: Everything must be strongly typed - no `any` types
+4. **Error Handling**: Use Result pattern for predictable error handling
+5. **Component Composition**: Prefer small, focused, reusable components
+6. **Server Delegation**: All auth logic happens on the backend, never in the frontend
+
+## Code Standards
+
+### TypeScript
+
+- **Strict mode enabled**: No implicit any, strict null checks
+- **Use interfaces for object shapes**: Prefer `interface` over `type` for objects
+- **Proper typing**: Never use `any` - use `unknown` if type is truly unknown
+- **Type imports**: Use `import type` for type-only imports
+
+```typescript
+// ✅ Good
+interface UserProfile {
+  id: string
+  email: string
+  firstName: string | null
+}
+
+// ❌ Bad
+type UserProfile = any
+const user: any = {...}
+```
+
+### React Components
+
+- **Functional components only**: No class components
+- **Named exports**: Use named exports, not default exports (except for pages)
+- **TypeScript props**: Always type component props
+- **Hooks at top level**: Never conditionally call hooks
+
+```typescript
+// ✅ Good
+interface ButtonProps {
+  variant?: 'default' | 'destructive'
+  onClick?: () => void
+  children: React.ReactNode
+}
+
+export function Button({ variant = 'default', onClick, children }: ButtonProps) {
+  return <button onClick={onClick}>{children}</button>
+}
+
+// ❌ Bad
+export default function Button(props: any) { ... }
+```
+
+### File Organization
+
+- **One component per file**: Each component in its own file
+- **Co-located tests**: Test files next to source files (`__tests__/`)
+- **Barrel exports**: Use `index.ts` for clean exports
+- **Naming conventions**:
+  - Components: PascalCase (`UserProfile.tsx`)
+  - Utilities: camelCase (`formatDate.ts`)
+  - Hooks: camelCase with `use` prefix (`useUser.ts`)
+  - Types: PascalCase (`UserProfile.ts`)
+
+## Project Structure & Patterns
+
+### Directory Structure
+
+```
+src/
+├── pages/           # Next.js Pages Router routes
+├── components/      # Reusable React components
+│   ├── ui/          # shadcn/ui base components
+│   └── features/    # Feature-specific components
+├── lib/             # Utilities and helpers
+│   ├── api/         # API client and endpoints
+│   ├── auth/        # Auth utilities
+│   └── result.ts    # Result pattern implementation
+├── hooks/           # Custom React hooks
+├── types/           # TypeScript type definitions
+├── config/          # Configuration files
+└── styles/          # Global styles
+```
+
+### API Integration Pattern
+
+**Always use the Result pattern** for API calls:
+
+```typescript
+// ✅ Correct pattern
+import type { Result } from '@/lib/result'
+
+async function fetchUser(id: string): Promise<Result<User>> {
+  try {
+    const user = await apiClient.get<User>(`/v1/users/${id}`)
+    return { ok: true, value: user }
+  } catch (error) {
+    return { ok: false, error: error as Error }
+  }
+}
+
+// In component
+const result = await fetchUser(id)
+if (result.ok) {
+  setUser(result.value)
+} else {
+  toast.error(result.error.message)
+}
+
+// ❌ Bad - throwing errors
+async function fetchUser(id: string): Promise<User> {
+  return await apiClient.get(`/v1/users/${id}`) // throws on error
+}
+```
+
+### Component Creation
+
+When creating new components:
+
+1. **Use shadcn/ui patterns**: Follow existing UI component structure
+2. **Radix UI primitives**: Build on Radix UI where applicable
+3. **Accessibility first**: Ensure ARIA attributes, keyboard navigation
+4. **Responsive design**: Mobile-first approach
+
+```typescript
+// Component template
+import { cn } from '@/lib/utils'
+
+interface MyComponentProps {
+  className?: string
+  children: React.ReactNode
+}
+
+export function MyComponent({ className, children }: MyComponentProps) {
+  return (
+    <div className={cn('base-classes', className)}>
+      {children}
+    </div>
+  )
+}
+```
+
+### Styling Guidelines
+
+- **Tailwind utility classes**: Use Tailwind, avoid inline styles
+- **CSS variables**: Use theme CSS variables from `globals.css`
+- **cn() utility**: Use for conditional classes
+- **Design system**: Follow existing color palette and spacing
+
+```typescript
+// ✅ Good
+<div className="flex items-center gap-4 rounded-lg bg-card p-4">
+<Button className={cn('w-full', isPrimary && 'bg-primary')}>
+
+// ❌ Bad
+<div style={{ display: 'flex', padding: '16px' }}>
+```
+
+## Testing Requirements
+
+### Unit Tests
+
+- **Test all utilities**: Every function in `lib/` should have tests
+- **Component testing**: Use React Testing Library
+- **User-centric tests**: Test behavior, not implementation
+
+```typescript
+// ✅ Good test
+describe('formatUserName', () => {
+  it('combines first and last name', () => {
+    expect(formatUserName('John', 'Doe')).toBe('John Doe')
+  })
+})
+
+// ❌ Bad test
+it('calls the join function', () => {
+  expect(joinSpy).toHaveBeenCalled() // Implementation detail
+})
+```
+
+### E2E Tests
+
+- **Critical flows**: Login, registration, user management
+- **Happy paths first**: Test main user journeys
+- **Playwright**: Use Playwright for E2E tests
+
+## Common Patterns
+
+### Pages Router Redirects
+
+```typescript
+// ✅ Correct - Server-side redirect in Pages Router
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  // Check auth
+  if (!isAuthenticated) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      },
+    }
+  }
+  return { props: {} }
+}
+
+// ❌ Wrong - Don't use redirect() from next/navigation in Pages Router
+import { redirect } from 'next/navigation' // This is for App Router only!
+```
+
+### Form Handling
+
+```typescript
+// Use Zod for validation
+import { z } from 'zod'
+
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+})
+
+type LoginForm = z.infer<typeof loginSchema>
+```
+
+### Error Handling
+
+```typescript
+// Always handle both success and error cases
+const result = await someApiCall()
+
+if (result.ok) {
+  // Success path
+  console.log(result.value)
+} else {
+  // Error path
+  console.error(result.error)
+}
+```
+
+## What NOT to Do
+
+❌ **Don't use App Router patterns** - We use Pages Router
+❌ **Don't use `any` type** - Use proper types or `unknown`
+❌ **Don't inline styles** - Use Tailwind classes
+❌ **Don't skip error handling** - Always handle errors
+❌ **Don't bypass ESLint** - Fix issues, don't disable rules
+❌ **Don't commit without tests** - Add tests for new features
+❌ **Don't hardcode values** - Use environment variables
+❌ **Don't make auth decisions in frontend** - Always call backend API
+
+## Code Quality Checklist
+
+Before committing code, ensure:
+
+- [ ] TypeScript compiles without errors (`npx tsc --noEmit`)
+- [ ] Linting passes (`npm run lint`)
+- [ ] Code is formatted (`npm run format`)
+- [ ] Tests pass (`npm test`)
+- [ ] No console errors in browser
+- [ ] Commit message follows conventional commits format
+
+## Helpful Commands
+
+```bash
+npm run dev          # Start development server
+npm run lint         # Run ESLint
+npm run format       # Format code with Prettier
+npm test             # Run unit tests
+npm run test:e2e     # Run E2E tests
+npm run build        # Build for production
+```
+
+## Getting Help
+
+- Check `DEVELOPMENT.md` for detailed development guide
+- Check `README.md` for project overview
+- Check `CONTRIBUTING.md` for contribution guidelines
+- Look at existing code for patterns and examples
+
+---
+
+**Remember**: Write clean, type-safe, tested code. When in doubt, follow existing patterns in the codebase.

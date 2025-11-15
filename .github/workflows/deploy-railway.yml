@@ -1,0 +1,37 @@
+name: Deploy to Railway
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy to Railway
+        run: railway up --service ${{ secrets.RAILWAY_SERVICE_NAME }}
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Deployment notification
+        if: success()
+        run: |
+          echo "🚀 Deployment to Railway successful!"
+          echo "Service: ${{ secrets.RAILWAY_SERVICE_NAME }}"
+
+      - name: Deployment failed notification
+        if: failure()
+        run: echo "❌ Deployment to Railway failed!"

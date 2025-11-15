@@ -1,4 +1,4 @@
-import { IconUserPlus, type Icon } from "@tabler/icons-react";
+import { type Icon, IconUserPlus } from '@tabler/icons-react'
 
 import {
   SidebarGroup,
@@ -6,18 +6,18 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar";
+} from '@/components/ui/sidebar'
 
 export function NavMain({
   items,
   inviteUserUrl,
 }: {
   items: {
-    title: string;
-    url: string;
-    icon?: Icon;
-  }[];
-  inviteUserUrl?: string;
+    title: string
+    url: string
+    icon?: Icon
+  }[]
+  inviteUserUrl?: string
 }) {
   return (
     <SidebarGroup>
@@ -52,5 +52,5 @@ export function NavMain({
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
-  );
+  )
 }

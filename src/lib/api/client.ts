@@ -1,215 +1,211 @@
-import { getIamApiBaseUrl } from "@/config/env";
-import { err, ok, type Result } from "@/lib/result";
+import { getIamApiBaseUrl } from '@/config/env'
+import { type Result, err, ok } from '@/lib/result'
 
-import { parseProblemDetails } from "./problem";
-import {
-  createNetworkError,
-  type ApiError,
-  type ProblemDetails,
-} from "./types";
+import { parseProblemDetails } from './problem'
+import { type ApiError, type ProblemDetails, createNetworkError } from './types'
 
-const CSRF_STORAGE_KEY = "cerberus:csrf-token";
+const CSRF_STORAGE_KEY = 'cerberus:csrf-token'
 
 const loadStoredCsrfToken = (): string | null => {
-  if (typeof window === "undefined") {
-    return null;
+  if (typeof window === 'undefined') {
+    return null
   }
 
   try {
-    return window.sessionStorage.getItem(CSRF_STORAGE_KEY);
+    return window.sessionStorage.getItem(CSRF_STORAGE_KEY)
   } catch (error) {
-    if (process.env.NODE_ENV !== "production") {
-      console.warn("Failed to read CSRF token from sessionStorage", error);
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('Failed to read CSRF token from sessionStorage', error)
     }
-    return null;
+    return null
   }
-};
+}
 
 const storeCsrfToken = (token: string | null): void => {
-  if (typeof window === "undefined") {
-    return;
+  if (typeof window === 'undefined') {
+    return
   }
 
   try {
     if (token) {
-      window.sessionStorage.setItem(CSRF_STORAGE_KEY, token);
+      window.sessionStorage.setItem(CSRF_STORAGE_KEY, token)
     } else {
-      window.sessionStorage.removeItem(CSRF_STORAGE_KEY);
+      window.sessionStorage.removeItem(CSRF_STORAGE_KEY)
     }
   } catch (error) {
-    if (process.env.NODE_ENV !== "production") {
-      console.warn("Failed to persist CSRF token", error);
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('Failed to persist CSRF token', error)
     }
   }
-};
+}
 
 export type HttpMethod =
-  | "GET"
-  | "POST"
-  | "PUT"
-  | "PATCH"
-  | "DELETE"
-  | "HEAD"
-  | "OPTIONS";
+  | 'GET'
+  | 'POST'
+  | 'PUT'
+  | 'PATCH'
+  | 'DELETE'
+  | 'HEAD'
+  | 'OPTIONS'
 
-type Primitive = string | number | boolean | bigint;
+type Primitive = string | number | boolean | bigint
 
 type QueryValue =
   | Primitive
   | null
   | undefined
-  | ReadonlyArray<Primitive | null | undefined>;
+  | ReadonlyArray<Primitive | null | undefined>
 
-export type QueryParams = Record<string, QueryValue> | URLSearchParams;
+export type QueryParams = Record<string, QueryValue> | URLSearchParams
 
 export interface ApiClientConfig {
-  readonly baseUrl?: string;
-  readonly defaultOrgSlug?: string;
-  readonly fetchImpl?: typeof fetch;
-  readonly csrfToken?: string | null;
-  readonly onCsrfToken?: (token: string) => void;
+  readonly baseUrl?: string
+  readonly defaultOrgSlug?: string
+  readonly fetchImpl?: typeof fetch
+  readonly csrfToken?: string | null
+  readonly onCsrfToken?: (token: string) => void
 }
 
 export interface ApiRequestOptions {
-  method?: HttpMethod;
-  headers?: HeadersInit;
-  body?: unknown;
-  query?: QueryParams;
-  orgSlug?: string;
-  csrfToken?: string | null;
-  cookie?: string;
-  signal?: AbortSignal;
-  cache?: RequestCache;
-  credentials?: RequestCredentials;
-  mode?: RequestMode;
-  keepalive?: boolean;
-  redirect?: RequestRedirect;
-  referrer?: string;
-  referrerPolicy?: ReferrerPolicy;
-  integrity?: string;
+  method?: HttpMethod
+  headers?: HeadersInit
+  body?: unknown
+  query?: QueryParams
+  orgSlug?: string
+  csrfToken?: string | null
+  cookie?: string
+  signal?: AbortSignal
+  cache?: RequestCache
+  credentials?: RequestCredentials
+  mode?: RequestMode
+  keepalive?: boolean
+  redirect?: RequestRedirect
+  referrer?: string
+  referrerPolicy?: ReferrerPolicy
+  integrity?: string
 }
 
 const normalizePath = (path: string): string => {
   if (!path) {
-    return "/";
+    return '/'
   }
 
   if (/^https?:\/\//i.test(path)) {
-    return path;
+    return path
   }
 
-  return path.startsWith("/") ? path : `/${path}`;
-};
+  return path.startsWith('/') ? path : `/${path}`
+}
 
 const appendQuery = (url: URL, query?: QueryParams) => {
   if (!query) {
-    return;
+    return
   }
 
   if (query instanceof URLSearchParams) {
     query.forEach((value, key) => {
-      url.searchParams.append(key, value);
-    });
-    return;
+      url.searchParams.append(key, value)
+    })
+    return
   }
 
   for (const [key, rawValue] of Object.entries(query)) {
     if (rawValue === undefined || rawValue === null) {
-      continue;
+      continue
     }
 
-    const values = Array.isArray(rawValue) ? rawValue : [rawValue];
+    const values = Array.isArray(rawValue) ? rawValue : [rawValue]
 
     for (const value of values) {
       if (value === undefined || value === null) {
-        continue;
+        continue
       }
 
-      url.searchParams.append(key, String(value));
+      url.searchParams.append(key, String(value))
     }
   }
-};
+}
 
 const isJsonLikeBody = (body: unknown): body is Record<string, unknown> => {
-  if (!body || typeof body !== "object") {
-    return false;
+  if (!body || typeof body !== 'object') {
+    return false
   }
 
   if (body instanceof ArrayBuffer || ArrayBuffer.isView(body)) {
-    return false;
+    return false
   }
 
-  if (typeof FormData !== "undefined" && body instanceof FormData) {
-    return false;
+  if (typeof FormData !== 'undefined' && body instanceof FormData) {
+    return false
   }
 
-  if (typeof Blob !== "undefined" && body instanceof Blob) {
-    return false;
+  if (typeof Blob !== 'undefined' && body instanceof Blob) {
+    return false
   }
 
   if (
-    typeof URLSearchParams !== "undefined" &&
+    typeof URLSearchParams !== 'undefined' &&
     body instanceof URLSearchParams
   ) {
-    return false;
+    return false
   }
 
-  return true;
-};
+  return true
+}
 
 const shouldSkipContentType = (body: unknown): boolean => {
   if (!body) {
-    return true;
+    return true
   }
 
-  if (typeof body === "string") {
-    return false;
+  if (typeof body === 'string') {
+    return false
   }
 
   if (body instanceof ArrayBuffer || ArrayBuffer.isView(body)) {
-    return true;
+    return true
   }
 
-  if (typeof FormData !== "undefined" && body instanceof FormData) {
-    return true;
+  if (typeof FormData !== 'undefined' && body instanceof FormData) {
+    return true
   }
 
-  if (typeof Blob !== "undefined" && body instanceof Blob) {
-    return true;
+  if (typeof Blob !== 'undefined' && body instanceof Blob) {
+    return true
   }
 
   if (
-    typeof URLSearchParams !== "undefined" &&
+    typeof URLSearchParams !== 'undefined' &&
     body instanceof URLSearchParams
   ) {
-    return true;
+    return true
   }
 
-  return false;
-};
+  return false
+}
 
 export class IamApiClient {
-  private readonly baseUrl: string;
-  private readonly defaultOrgSlug?: string;
-  private readonly fetchImpl: typeof fetch;
-  private csrfToken: string | null;
-  private readonly onCsrfToken?: (token: string) => void;
+  private readonly baseUrl: string
+  private readonly defaultOrgSlug?: string
+  private readonly fetchImpl: typeof fetch
+  private csrfToken: string | null
+  private readonly onCsrfToken?: (token: string) => void
 
   constructor(config: ApiClientConfig = {}) {
-    const base = config.baseUrl ?? getIamApiBaseUrl();
-    this.baseUrl = base.replace(/\/+$/, "");
-    this.defaultOrgSlug = config.defaultOrgSlug;
-    const resolvedFetch = config.fetchImpl ?? fetch;
-    this.fetchImpl = (input, init) => resolvedFetch(input, init);
-    this.csrfToken = config.csrfToken ?? loadStoredCsrfToken();
-    this.onCsrfToken = config.onCsrfToken;
+    const base = config.baseUrl ?? getIamApiBaseUrl()
+    this.baseUrl = base.replace(/\/+$/, '')
+    this.defaultOrgSlug = config.defaultOrgSlug
+    const resolvedFetch = config.fetchImpl ?? fetch
+    this.fetchImpl = (input, init) => resolvedFetch(input, init)
+    this.csrfToken = config.csrfToken ?? loadStoredCsrfToken()
+    this.onCsrfToken = config.onCsrfToken
   }
 
   setCsrfToken(token: string | null): void {
-    this.csrfToken = token;
-    storeCsrfToken(token);
+    this.csrfToken = token
+    storeCsrfToken(token)
     if (token) {
-      this.onCsrfToken?.(token);
+      this.onCsrfToken?.(token)
     }
   }
 
@@ -217,33 +213,33 @@ export class IamApiClient {
     path: string,
     options: ApiRequestOptions = {}
   ): Promise<Result<T, ApiError>> {
-    return this.executeRequest(path, options, false);
+    return this.executeRequest(path, options, false)
   }
 
-  async ensureFreshCsrfToken(path: string = "/v1/auth/login"): Promise<void> {
-    const url = this.buildUrl(path);
-    const headers = new Headers();
+  async ensureFreshCsrfToken(path: string = '/v1/auth/login'): Promise<void> {
+    const url = this.buildUrl(path)
+    const headers = new Headers()
 
     if (this.defaultOrgSlug) {
-      headers.set("X-Org-Domain", this.defaultOrgSlug);
+      headers.set('X-Org-Domain', this.defaultOrgSlug)
     }
 
-    await this.fetchCsrfToken(url, headers);
+    await this.fetchCsrfToken(url, headers)
   }
 
   private buildUrl(path: string, query?: QueryParams): string {
     if (/^https?:\/\//i.test(path)) {
-      const url = new URL(path);
-      appendQuery(url, query);
-      return url.toString();
+      const url = new URL(path)
+      appendQuery(url, query)
+      return url.toString()
     }
 
-    const normalizedBase = this.baseUrl || "";
-    const normalizedPath = normalizePath(path);
-    const combined = `${normalizedBase}${normalizedPath}`;
-    const url = new URL(combined);
-    appendQuery(url, query);
-    return url.toString();
+    const normalizedBase = this.baseUrl || ''
+    const normalizedPath = normalizePath(path)
+    const combined = `${normalizedBase}${normalizedPath}`
+    const url = new URL(combined)
+    appendQuery(url, query)
+    return url.toString()
   }
 
   private async executeRequest<T>(
@@ -252,7 +248,7 @@ export class IamApiClient {
     hasRetried: boolean
   ): Promise<Result<T, ApiError>> {
     const {
-      method = "GET",
+      method = 'GET',
       headers,
       body,
       query,
@@ -268,43 +264,43 @@ export class IamApiClient {
       referrer,
       referrerPolicy,
       integrity,
-    } = options;
+    } = options
 
     if (this.shouldIncludeCsrf(method) && !this.csrfToken) {
-      await this.ensureFreshCsrfToken(path);
+      await this.ensureFreshCsrfToken(path)
     }
 
-    const url = this.buildUrl(path, query);
+    const url = this.buildUrl(path, query)
 
-    const requestHeaders = new Headers(headers);
+    const requestHeaders = new Headers(headers)
 
-    if (!requestHeaders.has("Accept")) {
-      requestHeaders.set("Accept", "application/json");
+    if (!requestHeaders.has('Accept')) {
+      requestHeaders.set('Accept', 'application/json')
     }
 
-    const resolvedOrgSlug = orgSlug ?? this.defaultOrgSlug;
-    if (resolvedOrgSlug && !requestHeaders.has("X-Org-Domain")) {
-      requestHeaders.set("X-Org-Domain", resolvedOrgSlug);
+    const resolvedOrgSlug = orgSlug ?? this.defaultOrgSlug
+    if (resolvedOrgSlug && !requestHeaders.has('X-Org-Domain')) {
+      requestHeaders.set('X-Org-Domain', resolvedOrgSlug)
     }
 
     const resolvedCsrfToken =
       csrfToken ??
       this.csrfToken ??
-      requestHeaders.get("X-CSRF-Token") ??
-      undefined;
+      requestHeaders.get('X-CSRF-Token') ??
+      undefined
     if (resolvedCsrfToken) {
-      requestHeaders.set("X-CSRF-Token", resolvedCsrfToken);
+      requestHeaders.set('X-CSRF-Token', resolvedCsrfToken)
     }
 
-    if (cookie && typeof window === "undefined") {
-      requestHeaders.set("Cookie", cookie);
+    if (cookie && typeof window === 'undefined') {
+      requestHeaders.set('Cookie', cookie)
     }
 
     const init: RequestInit = {
       method,
       signal,
       cache,
-      credentials: credentials ?? "include",
+      credentials: credentials ?? 'include',
       mode,
       keepalive,
       redirect,
@@ -312,52 +308,52 @@ export class IamApiClient {
       referrerPolicy,
       integrity,
       headers: requestHeaders,
-    };
+    }
 
     if (body !== undefined && body !== null) {
       if (isJsonLikeBody(body)) {
         if (
-          !requestHeaders.has("Content-Type") &&
+          !requestHeaders.has('Content-Type') &&
           !shouldSkipContentType(body)
         ) {
-          requestHeaders.set("Content-Type", "application/json");
+          requestHeaders.set('Content-Type', 'application/json')
         }
-        init.body = JSON.stringify(body);
+        init.body = JSON.stringify(body)
       } else {
-        init.body = body as BodyInit;
+        init.body = body as BodyInit
       }
     }
 
     try {
-      const response = await this.fetchImpl(url, init);
+      const response = await this.fetchImpl(url, init)
 
-      const incomingCsrf = response.headers.get("x-csrf-token");
+      const incomingCsrf = response.headers.get('x-csrf-token')
       if (incomingCsrf) {
-        this.setCsrfToken(incomingCsrf);
+        this.setCsrfToken(incomingCsrf)
       }
 
       if (response.ok) {
         if (
           response.status === 204 ||
           response.status === 205 ||
-          method === "HEAD"
+          method === 'HEAD'
         ) {
-          return ok(undefined as T);
+          return ok(undefined as T)
         }
 
         const contentType =
-          response.headers.get("content-type")?.toLowerCase() ?? "";
+          response.headers.get('content-type')?.toLowerCase() ?? ''
 
-        if (contentType.includes("json")) {
-          const data = (await response.json()) as T;
-          return ok(data);
+        if (contentType.includes('json')) {
+          const data = (await response.json()) as T
+          return ok(data)
         }
 
-        const text = (await response.text()) as unknown as T;
-        return ok(text);
+        const text = (await response.text()) as unknown as T
+        return ok(text)
       }
 
-      const problem = await parseProblemDetails(response);
+      const problem = await parseProblemDetails(response)
 
       if (
         !hasRetried &&
@@ -366,16 +362,16 @@ export class IamApiClient {
         const recovered = await this.tryRecoverFromCsrfFailure(
           url,
           requestHeaders
-        );
+        )
 
         if (recovered) {
-          return this.executeRequest<T>(path, options, true);
+          return this.executeRequest<T>(path, options, true)
         }
       }
 
-      return err(problem);
+      return err(problem)
     } catch (error) {
-      return err(createNetworkError(error));
+      return err(createNetworkError(error))
     }
   }
 
@@ -386,76 +382,76 @@ export class IamApiClient {
     url: string
   ): boolean {
     if (status === 403 || status === 419) {
-      return true;
+      return true
     }
 
-    const detail = problem.detail?.toLowerCase() ?? "";
-    const title = problem.title?.toLowerCase() ?? "";
+    const detail = problem.detail?.toLowerCase() ?? ''
+    const title = problem.title?.toLowerCase() ?? ''
 
-    if (detail.includes("csrf") || title.includes("csrf")) {
-      return true;
+    if (detail.includes('csrf') || title.includes('csrf')) {
+      return true
     }
 
-    if (status === 500 && method !== "GET" && url.includes("/v1/auth/")) {
-      return true;
+    if (status === 500 && method !== 'GET' && url.includes('/v1/auth/')) {
+      return true
     }
 
-    return false;
+    return false
   }
 
   private shouldIncludeCsrf(method: HttpMethod): boolean {
-    return !["GET", "HEAD", "OPTIONS"].includes(method);
+    return !['GET', 'HEAD', 'OPTIONS'].includes(method)
   }
 
   private async tryRecoverFromCsrfFailure(
     url: string,
     headers: Headers
   ): Promise<boolean> {
-    this.setCsrfToken(null);
-    return this.fetchCsrfToken(url, headers);
+    this.setCsrfToken(null)
+    return this.fetchCsrfToken(url, headers)
   }
 
   private async fetchCsrfToken(
     url: string,
     headers?: Headers
   ): Promise<boolean> {
-    const probeHeaders = new Headers(headers);
-    probeHeaders.delete("content-type");
-    probeHeaders.delete("content-length");
-    probeHeaders.delete("x-csrf-token");
+    const probeHeaders = new Headers(headers)
+    probeHeaders.delete('content-type')
+    probeHeaders.delete('content-length')
+    probeHeaders.delete('x-csrf-token')
 
     try {
       const attempt = async (method: HttpMethod): Promise<string | null> => {
         const response = await this.fetchImpl(url, {
           method,
-          credentials: "include",
+          credentials: 'include',
           headers: new Headers(probeHeaders),
-        });
+        })
 
-        return response.headers.get("x-csrf-token");
-      };
+        return response.headers.get('x-csrf-token')
+      }
 
-      const methods: HttpMethod[] = ["OPTIONS", "GET"];
+      const methods: HttpMethod[] = ['OPTIONS', 'GET']
 
       for (const method of methods) {
-        const token = await attempt(method);
+        const token = await attempt(method)
         if (token) {
-          this.setCsrfToken(token);
-          return true;
+          this.setCsrfToken(token)
+          return true
         }
       }
     } catch (error) {
-      if (process.env.NODE_ENV !== "production") {
-        console.warn("Failed to refresh CSRF token", error);
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('Failed to refresh CSRF token', error)
       }
     }
 
-    return false;
+    return false
   }
 }
 
 export const createIamApiClient = (
   config: ApiClientConfig = {}
-): IamApiClient => new IamApiClient(config);
+): IamApiClient => new IamApiClient(config)
 
-export const apiClient = new IamApiClient();
+export const apiClient = new IamApiClient()

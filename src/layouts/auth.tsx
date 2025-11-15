@@ -1,9 +1,10 @@
 /* eslint-disable @next/next/no-img-element */
-import { GalleryVerticalEnd } from "lucide-react";
-import Link from "next/link";
+import Link from 'next/link'
+
+import { GalleryVerticalEnd } from 'lucide-react'
 
 interface AuthLayoutProps {
-  children: React.ReactNode;
+  children: React.ReactNode
 }
 
 export function AuthLayout({ children }: AuthLayoutProps) {
@@ -30,5 +31,5 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         />
       </div>
     </div>
-  );
+  )
 }
