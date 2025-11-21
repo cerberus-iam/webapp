@@ -6,13 +6,12 @@ import { IconPlus } from '@tabler/icons-react';
 
 import { CreateApiKeyDialog } from '@/components/api-keys/create-api-key-dialog';
 import { RevokeApiKeyDialog } from '@/components/api-keys/revoke-api-key-dialog';
+import { createColumns } from '@/components/tables/settings/api-keys/columns';
+import { DataTable } from '@/components/tables/settings/api-keys/data-table';
 import { Button } from '@/components/ui/button';
 import { type ApiKey, ApiKeysApi } from '@/lib/api/api-keys';
 import { createServerApiClient } from '@/lib/auth/client-factory';
 import { requireAuth } from '@/lib/auth/redirects';
-
-import { createColumns } from './_columns';
-import { DataTable } from './_data-table';
 
 interface ApiKeysPageProps {
   initialApiKeys: ApiKey[];

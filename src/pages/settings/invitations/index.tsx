@@ -7,13 +7,12 @@ import { IconPlus } from '@tabler/icons-react';
 import { CreateInvitationDialog } from '@/components/invitations/create-invitation-dialog';
 import { ResendInvitationDialog } from '@/components/invitations/resend-invitation-dialog';
 import { RevokeInvitationDialog } from '@/components/invitations/revoke-invitation-dialog';
+import { createColumns } from '@/components/tables/settings/invitations/columns';
+import { DataTable } from '@/components/tables/settings/invitations/data-table';
 import { Button } from '@/components/ui/button';
 import { type Invitation, InvitationsApi } from '@/lib/api/invitations';
 import { createServerApiClient } from '@/lib/auth/client-factory';
 import { requireAuth } from '@/lib/auth/redirects';
-
-import { createColumns } from './_columns';
-import { DataTable } from './_data-table';
 
 interface InvitationsPageProps {
   initialInvitations: Invitation[];

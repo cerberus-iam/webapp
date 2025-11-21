@@ -87,19 +87,24 @@ export function EditWebhookDialog({
   onOpenChange,
   webhook,
 }: EditWebhookDialogProps) {
-  const [url, setUrl] = useState('');
-  const [active, setActive] = useState(true);
-  const [selectedEvents, setSelectedEvents] = useState<Set<string>>(new Set());
+  // Initialize state from webhook prop
+  const [url, setUrl] = useState(() => webhook?.url || '');
+  const [active, setActive] = useState(() => webhook?.active ?? true);
+  const [selectedEvents, setSelectedEvents] = useState<Set<string>>(
+    () => new Set(webhook?.events || [])
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Reset form when webhook changes
   useEffect(() => {
     if (webhook) {
       setUrl(webhook.url);
       setActive(webhook.active);
       setSelectedEvents(new Set(webhook.events));
     }
-  }, [webhook]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally sync form with webhook prop changes
+  }, [webhook?.id]);
 
   const handleEventToggle = (event: string) => {
     const newSelected = new Set(selectedEvents);

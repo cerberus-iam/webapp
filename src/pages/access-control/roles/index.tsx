@@ -8,14 +8,13 @@ import { CreateRoleDialog } from '@/components/roles/create-role-dialog';
 import { DeleteRoleDialog } from '@/components/roles/delete-role-dialog';
 import { EditRoleDialog } from '@/components/roles/edit-role-dialog';
 import { ManagePermissionsDialog } from '@/components/roles/manage-permissions-dialog';
+import { createColumns } from '@/components/tables/access-control/roles/columns';
+import { DataTable } from '@/components/tables/access-control/roles/data-table';
 import { Button } from '@/components/ui/button';
 import { AppLayout } from '@/layouts/app';
 import type { ListRolesResponse, Role } from '@/lib/api/roles';
 import { createServerApiClient } from '@/lib/auth/client-factory';
 import { requireAuth } from '@/lib/auth/redirects';
-
-import { createColumns } from './_columns';
-import { DataTable } from './_data-table';
 
 export default function RolesPage({
   user,

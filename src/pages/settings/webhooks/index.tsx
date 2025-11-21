@@ -4,6 +4,8 @@ import type { GetServerSideProps } from 'next';
 
 import { IconPlus } from '@tabler/icons-react';
 
+import { createColumns } from '@/components/tables/settings/webhooks/columns';
+import { DataTable } from '@/components/tables/settings/webhooks/data-table';
 import { Button } from '@/components/ui/button';
 import { CreateWebhookDialog } from '@/components/webhooks/create-webhook-dialog';
 import { DeleteWebhookDialog } from '@/components/webhooks/delete-webhook-dialog';
@@ -12,9 +14,6 @@ import { TestWebhookDialog } from '@/components/webhooks/test-webhook-dialog';
 import { type Webhook, WebhooksApi } from '@/lib/api/webhooks';
 import { createServerApiClient } from '@/lib/auth/client-factory';
 import { requireAuth } from '@/lib/auth/redirects';
-
-import { createColumns } from './_columns';
-import { DataTable } from './_data-table';
 
 interface WebhooksPageProps {
   initialWebhooks: Webhook[];

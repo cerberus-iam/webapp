@@ -8,15 +8,14 @@ import { CreateClientDialog } from '@/components/clients/create-client-dialog';
 import { EditClientDialog } from '@/components/clients/edit-client-dialog';
 import { RevokeClientDialog } from '@/components/clients/revoke-client-dialog';
 import { RotateSecretDialog } from '@/components/clients/rotate-secret-dialog';
+import { createColumns } from '@/components/tables/applications/clients/columns';
+import { DataTable } from '@/components/tables/applications/clients/data-table';
 import { Button } from '@/components/ui/button';
 import { AppLayout } from '@/layouts/app';
 import type { OAuth2Client } from '@/lib/api/clients';
 import { ClientsApi } from '@/lib/api/clients';
 import { createServerApiClient } from '@/lib/auth/client-factory';
 import { requireAuth } from '@/lib/auth/redirects';
-
-import { createColumns } from './_columns';
-import { DataTable } from './_data-table';
 
 export default function ClientsPage({
   user,

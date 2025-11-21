@@ -4,6 +4,8 @@ import type { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 
 import { IconPlus } from '@tabler/icons-react';
 
+import { createColumns } from '@/components/tables/directory/users/columns';
+import { DataTable } from '@/components/tables/directory/users/data-table';
 import { Button } from '@/components/ui/button';
 import { CreateUserDialog } from '@/components/users/create-user-dialog';
 import { DeleteUserDialog } from '@/components/users/delete-user-dialog';
@@ -12,9 +14,6 @@ import { AppLayout } from '@/layouts/app';
 import { createServerApiClient } from '@/lib/auth/client-factory';
 import { requireAuth } from '@/lib/auth/redirects';
 import type { User } from '@/types/iam';
-
-import { createColumns } from './_columns';
-import { DataTable } from './_data-table';
 
 interface UsersListResponse {
   users: User[];

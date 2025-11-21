@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     'out/**',
     'build/**',
     'next-env.d.ts',
+    // Exclude docs and coverage from linting
+    'docs/**',
+    'coverage/**',
   ]),
 ]);
 

@@ -1,11 +1,10 @@
 import type { GetServerSideProps } from 'next';
 
+import { columns } from '@/components/tables/audit/logs/columns';
+import { DataTable } from '@/components/tables/audit/logs/data-table';
 import { type AuditLog, AuditLogsApi } from '@/lib/api/audit-logs';
 import { createServerApiClient } from '@/lib/auth/client-factory';
 import { requireAuth } from '@/lib/auth/redirects';
-
-import { columns } from './_columns';
-import { DataTable } from './_data-table';
 
 interface AuditLogsPageProps {
   initialAuditLogs: AuditLog[];

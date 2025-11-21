@@ -33,19 +33,21 @@ export function EditTeamDialog({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
+  // Initialize form data from team prop
+  const [formData, setFormData] = useState(() => ({
     name: team.name,
     description: team.description || '',
-  });
+  }));
 
-  // Update form data when team changes
+  // Reset form data when team changes
   useEffect(() => {
     setFormData({
       name: team.name,
       description: team.description || '',
     });
     setError(null);
-  }, [team]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally sync form with team prop changes
+  }, [team.id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

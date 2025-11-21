@@ -33,13 +33,14 @@ export function EditClientDialog({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
+  // Initialize form data from client prop - will reset when client changes (due to key prop on Dialog)
+  const [formData, setFormData] = useState(() => ({
     name: client.name,
     redirectUris: client.redirectUris.join('\n'),
     allowedScopes: client.allowedScopes.join(' '),
-  });
+  }));
 
-  // Update form data when client changes
+  // Reset form data when client changes
   useEffect(() => {
     setFormData({
       name: client.name,
@@ -47,7 +48,8 @@ export function EditClientDialog({
       allowedScopes: client.allowedScopes.join(' '),
     });
     setError(null);
-  }, [client]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally sync form with client prop changes
+  }, [client.id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -4,6 +4,8 @@ import type { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 
 import { IconPlus } from '@tabler/icons-react';
 
+import { createColumns } from '@/components/tables/directory/teams/columns';
+import { DataTable } from '@/components/tables/directory/teams/data-table';
 import { CreateTeamDialog } from '@/components/teams/create-team-dialog';
 import { DeleteTeamDialog } from '@/components/teams/delete-team-dialog';
 import { EditTeamDialog } from '@/components/teams/edit-team-dialog';
@@ -14,9 +16,6 @@ import type { Team } from '@/lib/api/teams';
 import { TeamsApi } from '@/lib/api/teams';
 import { createServerApiClient } from '@/lib/auth/client-factory';
 import { requireAuth } from '@/lib/auth/redirects';
-
-import { createColumns } from './_columns';
-import { DataTable } from './_data-table';
 
 export default function TeamsPage({
   user,
