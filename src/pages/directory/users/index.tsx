@@ -13,8 +13,8 @@ import { createServerApiClient } from '@/lib/auth/client-factory';
 import { requireAuth } from '@/lib/auth/redirects';
 import type { User } from '@/types/iam';
 
-import { createColumns } from './columns';
-import { DataTable } from './data-table';
+import { createColumns } from './_columns';
+import { DataTable } from './_data-table';
 
 interface UsersListResponse {
   users: User[];

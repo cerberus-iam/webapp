@@ -112,3 +112,26 @@ export interface UsersListResponse {
   data: User[];
   total: number;
 }
+
+export interface AuditLog {
+  id: string;
+  timestamp: string;
+  eventCategory: string;
+  action: string;
+  actorId: string | null;
+  actorName: string | null;
+  actorEmail: string | null;
+  resourceType: string | null;
+  resourceId: string | null;
+  resourceEmail: string | null;
+  success: boolean;
+  ipAddress: string | null;
+  userAgent: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+export interface AuditLogsListResponse {
+  data: AuditLog[];
+  total: number;
+}

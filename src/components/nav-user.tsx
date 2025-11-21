@@ -1,8 +1,10 @@
+import { useRouter } from 'next/router';
+
 import {
-  IconCreditCard,
   IconDotsVertical,
+  IconKey,
   IconLogout,
-  IconNotification,
+  IconShieldLock,
   IconUserCircle,
 } from '@tabler/icons-react';
 
@@ -22,6 +24,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { IamApiClient } from '@/lib/api/client';
 
 export function NavUser({
   user,
@@ -33,6 +36,19 @@ export function NavUser({
   };
 }) {
   const { isMobile } = useSidebar();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      const client = new IamApiClient();
+      await client.request('/v1/auth/logout', { method: 'POST' });
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // Force redirect even if API call fails
+      router.push('/login');
+    }
+  };
 
   return (
     <SidebarMenu>
@@ -78,23 +94,23 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/me/profile')}>
                 <IconUserCircle />
-                Account
+                My Profile
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconCreditCard />
-                Billing
+              <DropdownMenuItem onClick={() => router.push('/me/api-keys')}>
+                <IconKey />
+                My API Keys
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconNotification />
-                Notifications
+              <DropdownMenuItem onClick={() => router.push('/me/security')}>
+                <IconShieldLock />
+                Security
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <IconLogout />
-              Log out
+              Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

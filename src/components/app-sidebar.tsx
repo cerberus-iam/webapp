@@ -1,15 +1,17 @@
 import * as React from 'react';
 
+import Link from 'next/link';
+
 import {
-  IconBuildingCommunity,
+  IconApi,
+  IconBook,
   IconDashboard,
-  IconHelp,
-  IconInnerShadowTop,
+  IconFileText,
   IconSearch,
   IconSettings,
   IconShield,
+  IconShieldLock,
   IconUsers,
-  IconUsersGroup,
 } from '@tabler/icons-react';
 
 import { NavMain } from '@/components/nav-main';
@@ -38,41 +40,83 @@ const data = {
       icon: IconDashboard,
     },
     {
-      title: 'Users',
-      url: '/users',
+      title: 'Directory',
+      url: '#',
       icon: IconUsers,
+      isActive: true,
+      items: [
+        {
+          title: 'Users',
+          url: '/directory/users',
+        },
+        {
+          title: 'Teams',
+          url: '/directory/teams',
+        },
+      ],
     },
     {
-      title: 'Roles',
-      url: '/roles',
-      icon: IconUsersGroup,
-    },
-    {
-      title: 'Policies',
-      url: '/policies',
+      title: 'Access Control',
+      url: '#',
       icon: IconShield,
+      items: [
+        {
+          title: 'Roles',
+          url: '/access-control/roles',
+        },
+      ],
     },
     {
-      title: 'Teams',
-      url: '/teams',
-      icon: IconUsersGroup,
+      title: 'Applications',
+      url: '#',
+      icon: IconApi,
+      items: [
+        {
+          title: 'Clients',
+          url: '/applications/clients',
+        },
+      ],
+    },
+    {
+      title: 'Audit & Activity',
+      url: '#',
+      icon: IconFileText,
+      items: [
+        {
+          title: 'Audit Logs',
+          url: '/audit/logs',
+        },
+      ],
+    },
+    {
+      title: 'Settings',
+      url: '#',
+      icon: IconSettings,
+      items: [
+        {
+          title: 'Organisation',
+          url: '/settings/organisation',
+        },
+        {
+          title: 'Invitations',
+          url: '/settings/invitations',
+        },
+        {
+          title: 'API Keys',
+          url: '/settings/api-keys',
+        },
+        {
+          title: 'Webhooks',
+          url: '/settings/webhooks',
+        },
+      ],
     },
   ],
   navSecondary: [
     {
-      title: 'Organisation Profile',
-      url: '/organisation',
-      icon: IconBuildingCommunity,
-    },
-    {
-      title: 'Settings',
-      url: '/settings',
-      icon: IconSettings,
-    },
-    {
-      title: 'Get Help',
-      url: '/help',
-      icon: IconHelp,
+      title: 'Documentation',
+      url: '/docs',
+      icon: IconBook,
     },
     {
       title: 'Search',
@@ -113,10 +157,10 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
               asChild
               className="data-[slot=sidebar-menu-button]:p-1.5!"
             >
-              <a href="#">
-                <IconInnerShadowTop className="size-5!" />
+              <Link href="/">
+                <IconShieldLock className="size-5!" />
                 <span className="text-base font-semibold">Cerberus IAM</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

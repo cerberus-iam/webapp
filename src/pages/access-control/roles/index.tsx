@@ -4,111 +4,110 @@ import type { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 
 import { IconPlus } from '@tabler/icons-react';
 
+import { CreateRoleDialog } from '@/components/roles/create-role-dialog';
+import { DeleteRoleDialog } from '@/components/roles/delete-role-dialog';
+import { EditRoleDialog } from '@/components/roles/edit-role-dialog';
+import { ManagePermissionsDialog } from '@/components/roles/manage-permissions-dialog';
 import { Button } from '@/components/ui/button';
-import { CreateUserDialog } from '@/components/users/create-user-dialog';
-import { DeleteUserDialog } from '@/components/users/delete-user-dialog';
-import { EditUserDialog } from '@/components/users/edit-user-dialog';
 import { AppLayout } from '@/layouts/app';
+import type { ListRolesResponse, Role } from '@/lib/api/roles';
 import { createServerApiClient } from '@/lib/auth/client-factory';
 import { requireAuth } from '@/lib/auth/redirects';
-import type { User } from '@/types/iam';
 
-import { createColumns } from './columns';
-import { DataTable } from './data-table';
+import { createColumns } from './_columns';
+import { DataTable } from './_data-table';
 
-interface UsersListResponse {
-  users: User[];
-  pagination: {
-    total: number;
-    limit: number;
-    offset: number;
-  };
-}
-
-export default function UsersPage({
+export default function RolesPage({
   user,
-  users,
+  roles,
   total,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [permissionsDialogOpen, setPermissionsDialogOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
 
-  const handleEdit = (user: User) => {
-    setSelectedUser(user);
+  const handleEdit = (role: Role) => {
+    setSelectedRole(role);
     setEditDialogOpen(true);
   };
 
-  const handleDelete = (user: User) => {
-    setSelectedUser(user);
+  const handleDelete = (role: Role) => {
+    setSelectedRole(role);
     setDeleteDialogOpen(true);
   };
 
+  const handleManagePermissions = (role: Role) => {
+    setSelectedRole(role);
+    setPermissionsDialogOpen(true);
+  };
+
   const columns = useMemo(
-    () => createColumns({ onEdit: handleEdit, onDelete: handleDelete }),
+    () =>
+      createColumns({
+        onEdit: handleEdit,
+        onDelete: handleDelete,
+        onManagePermissions: handleManagePermissions,
+      }),
     []
   );
 
   const breadcrumbs = [
     { label: 'Dashboard', href: '/dashboard' },
-    { label: 'Users' },
+    { label: 'Roles' },
   ];
 
   return (
     <AppLayout
       user={user}
       breadcrumbs={breadcrumbs}
-      title="Users"
-      docsUrl="https://docs.cerberus-iam.com/admin/users"
+      title="Roles & Permissions"
+      docsUrl="https://docs.cerberus-iam.com/admin/roles"
     >
       <div className="space-y-4 px-4 py-5 lg:px-6">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-medium">User Management</h3>
+            <h3 className="text-lg font-medium">Role Management</h3>
             <p className="text-muted-foreground text-sm">
-              Manage users, roles, and permissions for your organization.
-              {total > 0 && ` Total: ${total} users`}
+              Create and manage roles to control access to your organization.
+              {total > 0 && ` Total: ${total} roles`}
             </p>
           </div>
           <Button onClick={() => setCreateDialogOpen(true)}>
             <IconPlus className="mr-2 size-4" />
-            Add User
+            Create Role
           </Button>
         </div>
         <DataTable
           columns={columns}
-          data={users}
-          searchKey="email"
-          searchPlaceholder="Search by email..."
-          facetedFilters={[
-            {
-              columnId: 'status',
-              title: 'Status',
-              options: [
-                { label: 'Active', value: 'active' },
-                { label: 'Blocked', value: 'blocked' },
-              ],
-            },
-          ]}
+          data={roles}
+          searchKey="name"
+          searchPlaceholder="Search roles..."
         />
       </div>
 
-      <CreateUserDialog
+      <CreateRoleDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
       />
 
-      <EditUserDialog
-        user={selectedUser}
+      <EditRoleDialog
+        role={selectedRole}
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
       />
 
-      <DeleteUserDialog
-        user={selectedUser}
+      <DeleteRoleDialog
+        role={selectedRole}
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
+      />
+
+      <ManagePermissionsDialog
+        role={selectedRole}
+        open={permissionsDialogOpen}
+        onOpenChange={setPermissionsDialogOpen}
       />
     </AppLayout>
   );
@@ -118,8 +117,8 @@ export const getServerSideProps: GetServerSideProps = async (context) =>
   requireAuth(context, async ({ context }) => {
     try {
       const client = createServerApiClient(context);
-      const response = await client.request<UsersListResponse>(
-        '/v1/admin/users',
+      const response = await client.request<ListRolesResponse>(
+        '/v1/admin/roles',
         {
           method: 'GET',
           query: {
@@ -130,16 +129,16 @@ export const getServerSideProps: GetServerSideProps = async (context) =>
       );
 
       if (!response.ok) {
-        console.error('Failed to fetch users:', response.error);
-        return { users: [], total: 0 };
+        console.error('Failed to fetch roles:', response.error);
+        return { roles: [], total: 0 };
       }
 
       return {
-        users: response.value.users,
+        roles: response.value.roles,
         total: response.value.pagination.total,
       };
     } catch (error) {
-      console.error('Error fetching users:', error);
-      return { users: [], total: 0 };
+      console.error('Error fetching roles:', error);
+      return { roles: [], total: 0 };
     }
   });
