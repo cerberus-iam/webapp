@@ -37,15 +37,16 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Run unit tests
-        run: npm test -- --coverage
+        run: npm test
 
-      - name: Upload coverage reports
-        uses: codecov/codecov-action@v4
-        if: always()
-        with:
-          files: ./coverage/lcov.info
-          flags: unittests
-          fail_ci_if_error: false
+      # Coverage temporarily disabled
+      # - name: Upload coverage reports
+      #   uses: codecov/codecov-action@v4
+      #   if: always()
+      #   with:
+      #     files: ./coverage/lcov.info
+      #     flags: unittests
+      #     fail_ci_if_error: false
 
       - name: Build application
         run: npm run build
