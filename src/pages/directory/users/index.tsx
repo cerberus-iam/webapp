@@ -133,9 +133,19 @@ export const getServerSideProps: GetServerSideProps = async (context) =>
         return { users: [], total: 0 };
       }
 
+      // Handle both response formats: { users: [], pagination: {} } and { data: [], total: 0 }
+      const apiResponse = response.value as unknown as Record<string, unknown>;
+      const users = (apiResponse.users || apiResponse.data || []) as User[];
+      const total =
+        ((apiResponse.pagination as Record<string, unknown> | undefined)
+          ?.total as number | undefined) ||
+        (apiResponse.total as number | undefined) ||
+        (apiResponse.count as number | undefined) ||
+        0;
+
       return {
-        users: response.value.users,
-        total: response.value.pagination.total,
+        users,
+        total,
       };
     } catch (error) {
       console.error('Error fetching users:', error);

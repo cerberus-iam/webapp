@@ -133,9 +133,21 @@ export const getServerSideProps: GetServerSideProps = async (context) =>
         return { clients: [], total: 0 };
       }
 
+      // Handle both response formats: { clients: [], pagination: {} } and { data: [], total: 0 }
+      const apiResponse = result.value as unknown as Record<string, unknown>;
+      const clients = (apiResponse.clients ||
+        apiResponse.data ||
+        []) as OAuth2Client[];
+      const total =
+        ((apiResponse.pagination as Record<string, unknown> | undefined)
+          ?.total as number | undefined) ||
+        (apiResponse.total as number | undefined) ||
+        (apiResponse.count as number | undefined) ||
+        0;
+
       return {
-        clients: result.value.clients,
-        total: result.value.pagination.total,
+        clients,
+        total,
       };
     } catch (error) {
       console.error('Error fetching clients:', error);

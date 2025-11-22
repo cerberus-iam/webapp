@@ -59,7 +59,32 @@ export const createServerApiClient = (
         headers.set('x-org-domain', orgSlug);
       }
 
-      return fetch(input, { ...init, headers });
+      console.log('[createServerApiClient.fetch] Making request:', {
+        url:
+          typeof input === 'string'
+            ? input
+            : input instanceof URL
+              ? input.toString()
+              : input.url,
+        method: init?.method || 'GET',
+        headers: Object.fromEntries(headers.entries()),
+      });
+
+      const response = await fetch(input, { ...init, headers });
+
+      console.log('[createServerApiClient.fetch] Response received:', {
+        url:
+          typeof input === 'string'
+            ? input
+            : input instanceof URL
+              ? input.toString()
+              : input.url,
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries()),
+      });
+
+      return response;
     },
   };
 

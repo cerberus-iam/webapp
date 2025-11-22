@@ -131,9 +131,19 @@ export const getServerSideProps: GetServerSideProps = async (context) =>
         return { teams: [], total: 0 };
       }
 
+      // Handle both response formats: { teams: [], pagination: {} } and { data: [], total: 0 }
+      const apiResponse = result.value as unknown as Record<string, unknown>;
+      const teams = (apiResponse.teams || apiResponse.data || []) as Team[];
+      const total =
+        ((apiResponse.pagination as Record<string, unknown> | undefined)
+          ?.total as number | undefined) ||
+        (apiResponse.total as number | undefined) ||
+        (apiResponse.count as number | undefined) ||
+        0;
+
       return {
-        teams: result.value.teams,
-        total: result.value.pagination.total,
+        teams,
+        total,
       };
     } catch (error) {
       console.error('Error fetching teams:', error);

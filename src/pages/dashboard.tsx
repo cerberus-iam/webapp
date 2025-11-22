@@ -139,6 +139,8 @@ export const getServerSideProps: GetServerSideProps = async (context) =>
     const { createServerApiClient } = await import('@/lib/auth/client-factory');
     const apiClient = createServerApiClient(ctx);
 
+    console.log('[dashboard] Starting to fetch dashboard data');
+
     const usersApi = new UsersApi(apiClient);
     const rolesApi = new RolesApi(apiClient);
     const teamsApi = new TeamsApi(apiClient);
@@ -148,39 +150,76 @@ export const getServerSideProps: GetServerSideProps = async (context) =>
     const webhooksApi = new WebhooksApi(apiClient);
     // const auditLogsApi = new AuditLogsApi(apiClient);
 
-    // Fetch all stats in parallel
-    const [
-      usersResult,
-      rolesResult,
-      teamsResult,
-      clientsResult,
-      // apiKeysResult,
-      invitationsResult,
-      webhooksResult,
-      // logsResult,
-    ] = await Promise.all([
-      usersApi.list({ limit: 1 }),
-      rolesApi.list({ limit: 1 }),
-      teamsApi.list({ limit: 1 }),
-      clientsApi.list({ limit: 1 }),
-      // apiKeysApi.list({ limit: 1 }),
-      invitationsApi.list({ status: 'pending', limit: 1 }),
-      webhooksApi.list({ limit: 1 }),
-      // auditLogsApi.list({ limit: 10, sort: 'timestamp', order: 'desc' }),
-    ]);
+    try {
+      // Fetch all stats in parallel
+      const [
+        usersResult,
+        rolesResult,
+        teamsResult,
+        clientsResult,
+        // apiKeysResult,
+        invitationsResult,
+        webhooksResult,
+        // logsResult,
+      ] = await Promise.all([
+        usersApi.list({ limit: 1 }),
+        rolesApi.list({ limit: 1 }),
+        teamsApi.list({ limit: 1 }),
+        clientsApi.list({ limit: 1 }),
+        // apiKeysApi.list({ limit: 1 }),
+        invitationsApi.list({ status: 'pending', limit: 1 }),
+        webhooksApi.list({ limit: 1 }),
+        // auditLogsApi.list({ limit: 10, sort: 'timestamp', order: 'desc' }),
+      ]);
 
-    return {
-      usersCount: usersResult.ok ? usersResult.value.pagination.total : 0,
-      rolesCount: rolesResult.ok ? rolesResult.value.pagination.total : 0,
-      teamsCount: teamsResult.ok ? teamsResult.value.pagination.total : 0,
-      clientsCount: clientsResult.ok ? clientsResult.value.pagination.total : 0,
-      apiKeysCount: 0, // apiKeysResult.ok ? apiKeysResult.value.pagination.total : 0,
-      pendingInvitationsCount: invitationsResult.ok
-        ? invitationsResult.value.pagination.total
-        : 0,
-      activeWebhooksCount: webhooksResult.ok
-        ? webhooksResult.value.pagination.total
-        : 0,
-      recentLogs: [], // logsResult.ok ? logsResult.value.data : [],
-    };
+      console.log('[dashboard] API calls completed:', {
+        users: usersResult.ok ? 'success' : 'failed',
+        roles: rolesResult.ok ? 'success' : 'failed',
+        teams: teamsResult.ok ? 'success' : 'failed',
+        clients: clientsResult.ok ? 'success' : 'failed',
+        invitations: invitationsResult.ok ? 'success' : 'failed',
+        webhooks: webhooksResult.ok ? 'success' : 'failed',
+      });
+
+      // Helper to extract total from either { pagination: { total } } or { total } format
+      const getTotal = (result: unknown): number => {
+        const res = result as Record<string, unknown>;
+        return (
+          ((res.pagination as Record<string, unknown> | undefined)?.total as
+            | number
+            | undefined) ||
+          (res.total as number | undefined) ||
+          (res.count as number | undefined) ||
+          0
+        );
+      };
+
+      return {
+        usersCount: usersResult.ok ? getTotal(usersResult.value) : 0,
+        rolesCount: rolesResult.ok ? getTotal(rolesResult.value) : 0,
+        teamsCount: teamsResult.ok ? getTotal(teamsResult.value) : 0,
+        clientsCount: clientsResult.ok ? getTotal(clientsResult.value) : 0,
+        apiKeysCount: 0, // apiKeysResult.ok ? apiKeysResult.value.pagination.total : 0,
+        pendingInvitationsCount: invitationsResult.ok
+          ? getTotal(invitationsResult.value)
+          : 0,
+        activeWebhooksCount: webhooksResult.ok
+          ? getTotal(webhooksResult.value)
+          : 0,
+        recentLogs: [], // logsResult.ok ? logsResult.value.data : [],
+      };
+    } catch (error) {
+      console.error('[dashboard] Error fetching dashboard data:', error);
+      // Return zeros if anything fails
+      return {
+        usersCount: 0,
+        rolesCount: 0,
+        teamsCount: 0,
+        clientsCount: 0,
+        apiKeysCount: 0,
+        pendingInvitationsCount: 0,
+        activeWebhooksCount: 0,
+        recentLogs: [],
+      };
+    }
   });
