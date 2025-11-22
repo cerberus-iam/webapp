@@ -21,8 +21,8 @@ export interface Role {
 
 export interface Permission {
   id: string;
-  action: string;
-  resource: string;
+  name: string;
+  slug: string;
   description: string | null;
   isSystemPermission: boolean;
   createdAt: string;

@@ -75,7 +75,7 @@ export default function TeamsPage({
             </p>
           </div>
           <Button onClick={() => setCreateDialogOpen(true)}>
-            <IconPlus className="mr-2 h-4 w-4" />
+            <IconPlus className="mr-2 size-4" />
             Add Team
           </Button>
         </div>
@@ -86,34 +86,34 @@ export default function TeamsPage({
           searchKey="name"
           searchPlaceholder="Search teams..."
         />
-
-        <CreateTeamDialog
-          open={createDialogOpen}
-          onOpenChange={setCreateDialogOpen}
-        />
-
-        {selectedTeam && (
-          <>
-            <EditTeamDialog
-              open={editDialogOpen}
-              onOpenChange={setEditDialogOpen}
-              team={selectedTeam}
-            />
-
-            <DeleteTeamDialog
-              open={deleteDialogOpen}
-              onOpenChange={setDeleteDialogOpen}
-              team={selectedTeam}
-            />
-
-            <ManageMembersDialog
-              open={manageMembersDialogOpen}
-              onOpenChange={setManageMembersDialogOpen}
-              team={selectedTeam}
-            />
-          </>
-        )}
       </div>
+
+      <CreateTeamDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+      />
+
+      {selectedTeam && (
+        <>
+          <EditTeamDialog
+            open={editDialogOpen}
+            onOpenChange={setEditDialogOpen}
+            team={selectedTeam}
+          />
+
+          <DeleteTeamDialog
+            open={deleteDialogOpen}
+            onOpenChange={setDeleteDialogOpen}
+            team={selectedTeam}
+          />
+
+          <ManageMembersDialog
+            open={manageMembersDialogOpen}
+            onOpenChange={setManageMembersDialogOpen}
+            team={selectedTeam}
+          />
+        </>
+      )}
     </AppLayout>
   );
 }

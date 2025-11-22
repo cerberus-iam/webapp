@@ -77,7 +77,7 @@ export default function ClientsPage({
             </p>
           </div>
           <Button onClick={() => setCreateDialogOpen(true)}>
-            <IconPlus className="mr-2 h-4 w-4" />
+            <IconPlus className="mr-2 size-4" />
             Add Client
           </Button>
         </div>
@@ -88,34 +88,34 @@ export default function ClientsPage({
           searchKey="name"
           searchPlaceholder="Search clients..."
         />
-
-        <CreateClientDialog
-          open={createDialogOpen}
-          onOpenChange={setCreateDialogOpen}
-        />
-
-        {selectedClient && (
-          <>
-            <EditClientDialog
-              open={editDialogOpen}
-              onOpenChange={setEditDialogOpen}
-              client={selectedClient}
-            />
-
-            <RevokeClientDialog
-              open={revokeDialogOpen}
-              onOpenChange={setRevokeDialogOpen}
-              client={selectedClient}
-            />
-
-            <RotateSecretDialog
-              open={rotateSecretDialogOpen}
-              onOpenChange={setRotateSecretDialogOpen}
-              client={selectedClient}
-            />
-          </>
-        )}
       </div>
+
+      <CreateClientDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+      />
+
+      {selectedClient && (
+        <>
+          <EditClientDialog
+            open={editDialogOpen}
+            onOpenChange={setEditDialogOpen}
+            client={selectedClient}
+          />
+
+          <RevokeClientDialog
+            open={revokeDialogOpen}
+            onOpenChange={setRevokeDialogOpen}
+            client={selectedClient}
+          />
+
+          <RotateSecretDialog
+            open={rotateSecretDialogOpen}
+            onOpenChange={setRotateSecretDialogOpen}
+            client={selectedClient}
+          />
+        </>
+      )}
     </AppLayout>
   );
 }

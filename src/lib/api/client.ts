@@ -1,4 +1,4 @@
-import { getIamApiBaseUrl } from '@/config/env';
+import { getDefaultOrgSlug, getIamApiBaseUrl } from '@/config/env';
 import { type Result, err, ok } from '@/lib/result';
 
 import { parseProblemDetails } from './problem';
@@ -458,4 +458,6 @@ export const createIamApiClient = (
   config: ApiClientConfig = {}
 ): IamApiClient => new IamApiClient(config);
 
-export const apiClient = new IamApiClient();
+export const apiClient = new IamApiClient({
+  defaultOrgSlug: getDefaultOrgSlug(),
+});

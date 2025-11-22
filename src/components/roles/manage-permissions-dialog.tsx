@@ -19,19 +19,14 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { apiClient } from '@/lib/api/client';
-import { getProblemMessage } from '@/lib/api/error-utils';
+import { fetchFromAPI } from '@/lib/api/client-side';
 import type { Permission, Role } from '@/lib/api/roles';
-import { PermissionsApi, RolesApi } from '@/lib/api/roles';
 
 interface ManagePermissionsDialogProps {
   role: Role | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
-
-const rolesApi = new RolesApi(apiClient);
-const permissionsApi = new PermissionsApi(apiClient);
 
 export function ManagePermissionsDialog({
   role,
@@ -64,27 +59,39 @@ export function ManagePermissionsDialog({
     setIsLoading(true);
     setError(null);
 
-    // Load all permissions
-    const permissionsResult = await permissionsApi.list({ limit: 100 });
+    try {
+      console.log(
+        '[ManagePermissions] Loading permissions and role details for:',
+        role.id
+      );
 
-    // Load role details with current permissions
-    const roleResult = await rolesApi.get(role.id);
+      // Load all permissions via proxy
+      const permissionsData = await fetchFromAPI<{
+        data: Permission[];
+      }>('/v1/admin/permissions?limit=100');
+      console.log('[ManagePermissions] Permissions result: success');
 
-    if (permissionsResult.ok && roleResult.ok) {
-      setAllPermissions(permissionsResult.value.permissions);
-      setRoleDetails(roleResult.value);
+      // Load role details with current permissions via proxy
+      const roleData = await fetchFromAPI<Role>(`/v1/admin/roles/${role.id}`);
+      console.log('[ManagePermissions] Role result: success');
+
+      setAllPermissions(permissionsData.data || []);
+      setRoleDetails(roleData);
 
       // Initialize selected permissions
       const currentPermissionIds = new Set(
-        roleResult.value.permissions?.map((p) => p.id) || []
+        roleData.permissions?.map((p: Permission) => p.id) || []
       );
       setSelectedPermissionIds(currentPermissionIds);
-    } else {
-      if (!permissionsResult.ok) {
-        setError(getProblemMessage(permissionsResult.error));
-      } else if (!roleResult.ok) {
-        setError(getProblemMessage(roleResult.error));
-      }
+    } catch (err) {
+      console.error('[ManagePermissions] Error:', err);
+      const errorMessage =
+        err && typeof err === 'object' && 'detail' in err
+          ? String(err.detail)
+          : err instanceof Error
+            ? err.message
+            : 'Failed to load permissions';
+      setError(errorMessage);
     }
 
     setIsLoading(false);
@@ -106,42 +113,52 @@ export function ManagePermissionsDialog({
     setIsSaving(true);
     setError(null);
 
-    const currentIds = new Set(roleDetails.permissions?.map((p) => p.id) || []);
+    const currentIds = new Set(
+      roleDetails.permissions?.map((p: Permission) => p.id) || []
+    );
     const selectedIds = selectedPermissionIds;
 
     // Determine which permissions to add and remove
     const toAdd = [...selectedIds].filter((id) => !currentIds.has(id));
     const toRemove = [...currentIds].filter((id) => !selectedIds.has(id));
 
-    // Execute add/remove operations
-    for (const permissionId of toAdd) {
-      const result = await rolesApi.addPermission(role.id, { permissionId });
-      if (!result.ok) {
-        setError(getProblemMessage(result.error));
-        setIsSaving(false);
-        return;
+    try {
+      // Execute add operations via proxy
+      for (const permissionId of toAdd) {
+        await fetchFromAPI(`/v1/admin/roles/${role.id}/permissions`, {
+          method: 'POST',
+          body: JSON.stringify({ permissionId }),
+        });
       }
-    }
 
-    for (const permissionId of toRemove) {
-      const result = await rolesApi.removePermission(role.id, { permissionId });
-      if (!result.ok) {
-        setError(getProblemMessage(result.error));
-        setIsSaving(false);
-        return;
+      // Execute remove operations via proxy
+      for (const permissionId of toRemove) {
+        await fetchFromAPI(`/v1/admin/roles/${role.id}/permissions`, {
+          method: 'DELETE',
+          body: JSON.stringify({ permissionId }),
+        });
       }
-    }
 
-    setIsSaving(false);
-    onOpenChange(false);
-    router.replace(router.asPath);
+      setIsSaving(false);
+      onOpenChange(false);
+      router.replace(router.asPath);
+    } catch (err) {
+      const errorMessage =
+        err && typeof err === 'object' && 'detail' in err
+          ? String(err.detail)
+          : err instanceof Error
+            ? err.message
+            : 'Failed to update permissions';
+      setError(errorMessage);
+      setIsSaving(false);
+    }
   }, [role, roleDetails, selectedPermissionIds, onOpenChange, router]);
 
   const filteredPermissions = allPermissions.filter((permission) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     return (
-      permission.action.toLowerCase().includes(query) ||
+      permission.name.toLowerCase().includes(query) ||
       permission.description?.toLowerCase().includes(query)
     );
   });
@@ -230,7 +247,7 @@ export function ManagePermissionsDialog({
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center gap-2">
                       <code className="bg-muted text-foreground rounded px-1.5 py-0.5 font-mono text-xs">
-                        {permission.action}
+                        {permission.name}
                       </code>
                       {permission.isSystemPermission && (
                         <Badge variant="outline" className="gap-1">

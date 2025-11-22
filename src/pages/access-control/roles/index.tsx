@@ -132,28 +132,6 @@ export const getServerSideProps: GetServerSideProps = async (context) =>
         return { roles: [], total: 0 };
       }
 
-      console.log('[roles] API response structure:', {
-        hasRoles: !!response.value.roles,
-        hasData: !!(response.value as unknown as Record<string, unknown>).data,
-        rolesCount: Array.isArray(response.value.roles)
-          ? response.value.roles.length
-          : 'not-array',
-        dataCount: Array.isArray(
-          (response.value as unknown as Record<string, unknown>).data
-        )
-          ? (
-              (response.value as unknown as Record<string, unknown>)
-                .data as unknown[]
-            ).length
-          : 'not-array',
-        hasPagination: !!response.value.pagination,
-        paginationKeys: response.value.pagination
-          ? Object.keys(response.value.pagination)
-          : [],
-        topLevelKeys: Object.keys(response.value),
-        fullResponse: JSON.stringify(response.value).substring(0, 500),
-      });
-
       // Handle both response formats: { roles: [], pagination: {} } and { data: [], total: 0 }
       const apiResponse = response.value as unknown as Record<string, unknown>;
       const roles = (apiResponse.roles || apiResponse.data || []) as Role[];

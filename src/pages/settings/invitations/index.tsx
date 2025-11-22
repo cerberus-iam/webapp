@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
-import type { GetServerSideProps } from 'next';
+import type { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 
 import { IconPlus } from '@tabler/icons-react';
 
@@ -10,17 +10,16 @@ import { RevokeInvitationDialog } from '@/components/invitations/revoke-invitati
 import { createColumns } from '@/components/tables/settings/invitations/columns';
 import { DataTable } from '@/components/tables/settings/invitations/data-table';
 import { Button } from '@/components/ui/button';
+import { AppLayout } from '@/layouts/app';
 import { type Invitation, InvitationsApi } from '@/lib/api/invitations';
 import { createServerApiClient } from '@/lib/auth/client-factory';
 import { requireAuth } from '@/lib/auth/redirects';
 
-interface InvitationsPageProps {
-  initialInvitations: Invitation[];
-}
-
 export default function InvitationsPage({
+  user,
   initialInvitations,
-}: InvitationsPageProps) {
+  total,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [resendDialogOpen, setResendDialogOpen] = useState(false);
   const [revokeDialogOpen, setRevokeDialogOpen] = useState(false);
@@ -37,41 +36,54 @@ export default function InvitationsPage({
     setRevokeDialogOpen(true);
   };
 
-  const columns = createColumns(handleResend, handleRevoke);
+  const columns = useMemo(() => createColumns(handleResend, handleRevoke), []);
+
+  const breadcrumbs = [
+    { label: 'Dashboard', href: '/dashboard' },
+    { label: 'Invitations' },
+  ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Invitations</h1>
-          <p className="text-muted-foreground">
-            Manage pending and accepted invitations
-          </p>
+    <AppLayout
+      user={user}
+      breadcrumbs={breadcrumbs}
+      title="Invitations"
+      docsUrl="https://docs.cerberus-iam.com/admin/invitations"
+    >
+      <div className="space-y-4 px-4 py-5 lg:px-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-medium">Invitation Management</h3>
+            <p className="text-muted-foreground text-sm">
+              Manage pending and accepted invitations.
+              {total > 0 && ` Total: ${total} invitations`}
+            </p>
+          </div>
+          <Button onClick={() => setCreateDialogOpen(true)}>
+            <IconPlus className="mr-2 size-4" />
+            Send Invitation
+          </Button>
         </div>
-        <Button onClick={() => setCreateDialogOpen(true)}>
-          <IconPlus className="mr-2 h-4 w-4" />
-          Send Invitation
-        </Button>
-      </div>
 
-      <DataTable
-        columns={columns}
-        data={initialInvitations}
-        searchKey="email"
-        searchPlaceholder="Search by email..."
-        facetedFilters={[
-          {
-            columnId: 'status',
-            title: 'Status',
-            options: [
-              { label: 'Pending', value: 'pending' },
-              { label: 'Accepted', value: 'accepted' },
-              { label: 'Expired', value: 'expired' },
-              { label: 'Revoked', value: 'revoked' },
-            ],
-          },
-        ]}
-      />
+        <DataTable
+          columns={columns}
+          data={initialInvitations}
+          searchKey="email"
+          searchPlaceholder="Search by email..."
+          facetedFilters={[
+            {
+              columnId: 'status',
+              title: 'Status',
+              options: [
+                { label: 'Pending', value: 'pending' },
+                { label: 'Accepted', value: 'accepted' },
+                { label: 'Expired', value: 'expired' },
+                { label: 'Revoked', value: 'revoked' },
+              ],
+            },
+          ]}
+        />
+      </div>
 
       <CreateInvitationDialog
         open={createDialogOpen}
@@ -89,7 +101,7 @@ export default function InvitationsPage({
         onOpenChange={setRevokeDialogOpen}
         invitation={selectedInvitation}
       />
-    </div>
+    </AppLayout>
   );
 }
 
@@ -106,10 +118,20 @@ export const getServerSideProps: GetServerSideProps = async (context) =>
 
     if (!result.ok) {
       console.error('Failed to fetch invitations:', result.error);
-      return { initialInvitations: [] };
+      return { initialInvitations: [], total: 0 };
     }
+
+    // Handle both response formats: { data: [], pagination: {} } and { data: [], total: 0 }
+    const apiResponse = result.value as unknown as Record<string, unknown>;
+    const total =
+      ((apiResponse.pagination as Record<string, unknown> | undefined)
+        ?.total as number | undefined) ||
+      (apiResponse.total as number | undefined) ||
+      result.value.data.length ||
+      0;
 
     return {
       initialInvitations: result.value.data,
+      total,
     };
   });

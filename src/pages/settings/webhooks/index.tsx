@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
-import type { GetServerSideProps } from 'next';
+import type { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 
 import { IconPlus } from '@tabler/icons-react';
 
@@ -11,15 +11,16 @@ import { CreateWebhookDialog } from '@/components/webhooks/create-webhook-dialog
 import { DeleteWebhookDialog } from '@/components/webhooks/delete-webhook-dialog';
 import { EditWebhookDialog } from '@/components/webhooks/edit-webhook-dialog';
 import { TestWebhookDialog } from '@/components/webhooks/test-webhook-dialog';
+import { AppLayout } from '@/layouts/app';
 import { type Webhook, WebhooksApi } from '@/lib/api/webhooks';
 import { createServerApiClient } from '@/lib/auth/client-factory';
 import { requireAuth } from '@/lib/auth/redirects';
 
-interface WebhooksPageProps {
-  initialWebhooks: Webhook[];
-}
-
-export default function WebhooksPage({ initialWebhooks }: WebhooksPageProps) {
+export default function WebhooksPage({
+  user,
+  initialWebhooks,
+  total,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [testDialogOpen, setTestDialogOpen] = useState(false);
@@ -41,29 +42,46 @@ export default function WebhooksPage({ initialWebhooks }: WebhooksPageProps) {
     setDeleteDialogOpen(true);
   };
 
-  const columns = createColumns(handleEdit, handleTest, handleDelete);
+  const columns = useMemo(
+    () => createColumns(handleEdit, handleTest, handleDelete),
+    []
+  );
+
+  const breadcrumbs = [
+    { label: 'Dashboard', href: '/dashboard' },
+    { label: 'Webhooks' },
+  ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Webhooks</h1>
-          <p className="text-muted-foreground">
-            Configure webhook endpoints to receive real-time event notifications
-          </p>
+    <AppLayout
+      user={user}
+      breadcrumbs={breadcrumbs}
+      title="Webhooks"
+      docsUrl="https://docs.cerberus-iam.com/admin/webhooks"
+    >
+      <div className="space-y-4 px-4 py-5 lg:px-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-medium">Webhook Management</h3>
+            <p className="text-muted-foreground text-sm">
+              Configure webhook endpoints to receive real-time event
+              notifications.
+              {total > 0 && ` Total: ${total} webhooks`}
+            </p>
+          </div>
+          <Button onClick={() => setCreateDialogOpen(true)}>
+            <IconPlus className="mr-2 size-4" />
+            Create Webhook
+          </Button>
         </div>
-        <Button onClick={() => setCreateDialogOpen(true)}>
-          <IconPlus className="mr-2 h-4 w-4" />
-          Create Webhook
-        </Button>
-      </div>
 
-      <DataTable
-        columns={columns}
-        data={initialWebhooks}
-        searchKey="url"
-        searchPlaceholder="Search webhooks..."
-      />
+        <DataTable
+          columns={columns}
+          data={initialWebhooks}
+          searchKey="url"
+          searchPlaceholder="Search webhooks..."
+        />
+      </div>
 
       <CreateWebhookDialog
         open={createDialogOpen}
@@ -87,7 +105,7 @@ export default function WebhooksPage({ initialWebhooks }: WebhooksPageProps) {
         onOpenChange={setDeleteDialogOpen}
         webhook={selectedWebhook}
       />
-    </div>
+    </AppLayout>
   );
 }
 
@@ -104,10 +122,20 @@ export const getServerSideProps: GetServerSideProps = async (context) =>
 
     if (!result.ok) {
       console.error('Failed to fetch webhooks:', result.error);
-      return { initialWebhooks: [] };
+      return { initialWebhooks: [], total: 0 };
     }
+
+    // Handle both response formats: { data: [], pagination: {} } and { data: [], total: 0 }
+    const apiResponse = result.value as unknown as Record<string, unknown>;
+    const total =
+      ((apiResponse.pagination as Record<string, unknown> | undefined)
+        ?.total as number | undefined) ||
+      (apiResponse.total as number | undefined) ||
+      result.value.data.length ||
+      0;
 
     return {
       initialWebhooks: result.value.data,
+      total,
     };
   });

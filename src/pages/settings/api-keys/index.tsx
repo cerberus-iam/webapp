@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
-import type { GetServerSideProps } from 'next';
+import type { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 
 import { IconPlus } from '@tabler/icons-react';
 
@@ -9,15 +9,16 @@ import { RevokeApiKeyDialog } from '@/components/api-keys/revoke-api-key-dialog'
 import { createColumns } from '@/components/tables/settings/api-keys/columns';
 import { DataTable } from '@/components/tables/settings/api-keys/data-table';
 import { Button } from '@/components/ui/button';
+import { AppLayout } from '@/layouts/app';
 import { type ApiKey, ApiKeysApi } from '@/lib/api/api-keys';
 import { createServerApiClient } from '@/lib/auth/client-factory';
 import { requireAuth } from '@/lib/auth/redirects';
 
-interface ApiKeysPageProps {
-  initialApiKeys: ApiKey[];
-}
-
-export default function ApiKeysPage({ initialApiKeys }: ApiKeysPageProps) {
+export default function ApiKeysPage({
+  user,
+  initialApiKeys,
+  total,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [revokeDialogOpen, setRevokeDialogOpen] = useState(false);
   const [selectedApiKey, setSelectedApiKey] = useState<ApiKey | null>(null);
@@ -27,39 +28,52 @@ export default function ApiKeysPage({ initialApiKeys }: ApiKeysPageProps) {
     setRevokeDialogOpen(true);
   };
 
-  const columns = createColumns(handleRevoke);
+  const columns = useMemo(() => createColumns(handleRevoke), []);
+
+  const breadcrumbs = [
+    { label: 'Dashboard', href: '/dashboard' },
+    { label: 'API Keys' },
+  ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">API Keys</h1>
-          <p className="text-muted-foreground">
-            Manage API keys for server-to-server authentication
-          </p>
+    <AppLayout
+      user={user}
+      breadcrumbs={breadcrumbs}
+      title="API Keys"
+      docsUrl="https://docs.cerberus-iam.com/admin/api-keys"
+    >
+      <div className="space-y-4 px-4 py-5 lg:px-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-medium">API Key Management</h3>
+            <p className="text-muted-foreground text-sm">
+              Manage API keys for server-to-server authentication.
+              {total > 0 && ` Total: ${total} keys`}
+            </p>
+          </div>
+          <Button onClick={() => setCreateDialogOpen(true)}>
+            <IconPlus className="mr-2 size-4" />
+            Create API Key
+          </Button>
         </div>
-        <Button onClick={() => setCreateDialogOpen(true)}>
-          <IconPlus className="mr-2 h-4 w-4" />
-          Create API Key
-        </Button>
-      </div>
 
-      <DataTable
-        columns={columns}
-        data={initialApiKeys}
-        searchKey="name"
-        searchPlaceholder="Search API keys..."
-        facetedFilters={[
-          {
-            columnId: 'status',
-            title: 'Status',
-            options: [
-              { label: 'Active', value: 'active' },
-              { label: 'Revoked', value: 'revoked' },
-            ],
-          },
-        ]}
-      />
+        <DataTable
+          columns={columns}
+          data={initialApiKeys}
+          searchKey="name"
+          searchPlaceholder="Search API keys..."
+          facetedFilters={[
+            {
+              columnId: 'status',
+              title: 'Status',
+              options: [
+                { label: 'Active', value: 'active' },
+                { label: 'Revoked', value: 'revoked' },
+              ],
+            },
+          ]}
+        />
+      </div>
 
       <CreateApiKeyDialog
         open={createDialogOpen}
@@ -71,7 +85,7 @@ export default function ApiKeysPage({ initialApiKeys }: ApiKeysPageProps) {
         onOpenChange={setRevokeDialogOpen}
         apiKey={selectedApiKey}
       />
-    </div>
+    </AppLayout>
   );
 }
 
@@ -88,10 +102,20 @@ export const getServerSideProps: GetServerSideProps = async (context) =>
 
     if (!result.ok) {
       console.error('Failed to fetch API keys:', result.error);
-      return { initialApiKeys: [] };
+      return { initialApiKeys: [], total: 0 };
     }
+
+    // Handle both response formats: { data: [], pagination: {} } and { data: [], total: 0 }
+    const apiResponse = result.value as unknown as Record<string, unknown>;
+    const total =
+      ((apiResponse.pagination as Record<string, unknown> | undefined)
+        ?.total as number | undefined) ||
+      (apiResponse.total as number | undefined) ||
+      result.value.data.length ||
+      0;
 
     return {
       initialApiKeys: result.value.data,
+      total,
     };
   });

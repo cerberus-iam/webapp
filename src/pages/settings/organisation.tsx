@@ -3,7 +3,7 @@ import { useState } from 'react';
 import type { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { useRouter } from 'next/router';
 
-import { IconBuilding, IconCheck, IconTrash } from '@tabler/icons-react';
+import { IconCheck, IconTrash } from '@tabler/icons-react';
 
 import { DeleteOrganisationDialog } from '@/components/organisation/delete-organisation-dialog';
 import { Badge } from '@/components/ui/badge';
@@ -93,11 +93,8 @@ export default function OrganisationSettingsPage({
       title="Organisation Settings"
       docsUrl="https://docs.cerberus-iam.com/admin/organisation"
     >
-      <div className="space-y-6 px-4 py-5 lg:px-6">
-        <div className="flex items-center gap-3">
-          <div className="bg-muted flex h-12 w-12 items-center justify-center rounded-lg border">
-            <IconBuilding className="h-6 w-6" />
-          </div>
+      <div className="space-y-4 px-4 py-5 lg:px-6">
+        <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-medium">Organisation Settings</h3>
             <p className="text-muted-foreground text-sm">
@@ -259,19 +256,19 @@ export default function OrganisationSettingsPage({
                 onClick={() => setDeleteDialogOpen(true)}
                 disabled={loading}
               >
-                <IconTrash className="mr-2 h-4 w-4" />
+                <IconTrash className="mr-2 size-4" />
                 Delete
               </Button>
             </div>
           </div>
         </div>
-
-        <DeleteOrganisationDialog
-          open={deleteDialogOpen}
-          onOpenChange={setDeleteDialogOpen}
-          organisation={organisation}
-        />
       </div>
+
+      <DeleteOrganisationDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        organisation={organisation}
+      />
     </AppLayout>
   );
 }
