@@ -33,11 +33,23 @@ export const requireAuth = async <
 ): Promise<AuthenticatedGsspResult<T>> => {
   try {
     const client = createServerApiClient(context);
+
+    // Add timeout to prevent hanging requests
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
     const profile = await client.request<MeProfile>('/v1/me/profile', {
       method: 'GET',
+      signal: controller.signal,
     });
 
+    clearTimeout(timeoutId);
+
     if (!profile.ok) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('Profile request failed:', profile.error);
+      }
+
       return {
         redirect: {
           destination: `/login?next=${encodeURIComponent(
@@ -76,11 +88,27 @@ export const redirectIfAuthenticated = async (
   context: GetServerSidePropsContext,
   destination: string = '/dashboard'
 ): Promise<RedirectResponse | { props: Record<string, never> }> => {
+  // Only check auth if we have cookies (basic optimization to avoid unnecessary API calls)
+  const hasCookie = context.req.headers.cookie?.includes('cerberus_session');
+
+  if (!hasCookie) {
+    // No session cookie, definitely not authenticated
+    return { props: {} };
+  }
+
   try {
     const client = createServerApiClient(context);
+
+    // Add timeout to prevent hanging requests
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
     const profile = await client.request<MeProfile>('/v1/me/profile', {
       method: 'GET',
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     if (profile.ok) {
       return {
