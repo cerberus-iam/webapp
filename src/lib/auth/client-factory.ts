@@ -38,6 +38,15 @@ export const createServerApiClient = (
   const orgSlug = resolveOrgSlug(req.headers as Record<string, unknown>);
   const csrfToken = getCsrfTokenFromCookies(req.headers);
 
+  console.log('[createServerApiClient] Creating client:', {
+    baseUrl: getIamApiBaseUrl(),
+    hasCookie: !!cookie,
+    cookieLength: cookie?.length,
+    cookies: cookie?.split(';').map((c) => c.trim().split('=')[0]),
+    orgSlug,
+    csrfToken: csrfToken ? `${csrfToken.substring(0, 8)}...` : null,
+  });
+
   const config: ApiClientConfig = {
     ...buildConfig({ ...options, csrfToken }),
     fetchImpl: async (input, init) => {
