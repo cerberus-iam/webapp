@@ -21,8 +21,8 @@ import { StatCard } from '@/components/dashboard/stat-card';
 import { CreateInvitationDialog } from '@/components/invitations/create-invitation-dialog';
 import { CreateUserDialog } from '@/components/users/create-user-dialog';
 import { AppLayout } from '@/layouts/app';
-import { ApiKeysApi } from '@/lib/api/api-keys';
-import { AuditLogsApi } from '@/lib/api/audit-logs';
+// import { ApiKeysApi } from '@/lib/api/api-keys';
+// import { AuditLogsApi } from '@/lib/api/audit-logs';
 import { ClientsApi } from '@/lib/api/clients';
 import { InvitationsApi } from '@/lib/api/invitations';
 import { RolesApi } from '@/lib/api/roles';
@@ -143,10 +143,10 @@ export const getServerSideProps: GetServerSideProps = async (context) =>
     const rolesApi = new RolesApi(apiClient);
     const teamsApi = new TeamsApi(apiClient);
     const clientsApi = new ClientsApi(apiClient);
-    const apiKeysApi = new ApiKeysApi(apiClient);
+    // const apiKeysApi = new ApiKeysApi(apiClient);
     const invitationsApi = new InvitationsApi(apiClient);
     const webhooksApi = new WebhooksApi(apiClient);
-    const auditLogsApi = new AuditLogsApi(apiClient);
+    // const auditLogsApi = new AuditLogsApi(apiClient);
 
     // Fetch all stats in parallel
     const [
@@ -154,19 +154,19 @@ export const getServerSideProps: GetServerSideProps = async (context) =>
       rolesResult,
       teamsResult,
       clientsResult,
-      apiKeysResult,
+      // apiKeysResult,
       invitationsResult,
       webhooksResult,
-      logsResult,
+      // logsResult,
     ] = await Promise.all([
       usersApi.list({ limit: 1 }),
       rolesApi.list({ limit: 1 }),
       teamsApi.list({ limit: 1 }),
       clientsApi.list({ limit: 1 }),
-      apiKeysApi.list({ limit: 1 }),
+      // apiKeysApi.list({ limit: 1 }),
       invitationsApi.list({ status: 'pending', limit: 1 }),
       webhooksApi.list({ limit: 1 }),
-      auditLogsApi.list({ limit: 10, sort: 'timestamp', order: 'desc' }),
+      // auditLogsApi.list({ limit: 10, sort: 'timestamp', order: 'desc' }),
     ]);
 
     return {
@@ -174,13 +174,13 @@ export const getServerSideProps: GetServerSideProps = async (context) =>
       rolesCount: rolesResult.ok ? rolesResult.value.pagination.total : 0,
       teamsCount: teamsResult.ok ? teamsResult.value.pagination.total : 0,
       clientsCount: clientsResult.ok ? clientsResult.value.pagination.total : 0,
-      apiKeysCount: apiKeysResult.ok ? apiKeysResult.value.pagination.total : 0,
+      apiKeysCount: 0, // apiKeysResult.ok ? apiKeysResult.value.pagination.total : 0,
       pendingInvitationsCount: invitationsResult.ok
         ? invitationsResult.value.pagination.total
         : 0,
       activeWebhooksCount: webhooksResult.ok
         ? webhooksResult.value.pagination.total
         : 0,
-      recentLogs: logsResult.ok ? logsResult.value.data : [],
+      recentLogs: [], // logsResult.ok ? logsResult.value.data : [],
     };
   });
