@@ -23,6 +23,7 @@ import { StatCard } from '@/components/dashboard/stat-card';
 import { StatusPieChart } from '@/components/dashboard/status-pie-chart';
 import { TopActivity } from '@/components/dashboard/top-activity';
 import { CreateInvitationDialog } from '@/components/invitations/create-invitation-dialog';
+import { PageHeader } from '@/components/page-header';
 import { CreateUserDialog } from '@/components/users/create-user-dialog';
 import { AppLayout } from '@/layouts/app';
 import { ApiKeysApi } from '@/lib/api/api-keys';
@@ -63,20 +64,16 @@ export default function DashboardPage({
         organisation={user.organisation}
         breadcrumbs={[{ label: 'Dashboard' }]}
       >
-        <div className="flex flex-col gap-6 px-4 py-6 lg:px-6 lg:py-8">
+        <div className="flex flex-col gap-6 pb-6">
           {/* Page Header */}
-          <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight lg:text-3xl">
-              Dashboard
-            </h1>
-            <p className="text-muted-foreground text-sm lg:text-base">
-              Overview of your organization&apos;s identity and access
-              management.
-            </p>
-          </div>
+          <PageHeader
+            title="Dashboard"
+            description={`Overview of your organization&apos;s identity and access
+              management.`}
+          />
 
           {/* Stats Grid */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 px-4 md:grid-cols-2 lg:grid-cols-4 lg:px-6">
             <StatCard
               title="Total Users"
               value={overviewStats?.totalUsers ?? usersCount}
@@ -148,7 +145,7 @@ export default function DashboardPage({
           </div>
 
           {/* Quick Actions */}
-          <div className="space-y-4">
+          <div className="space-y-4 px-4 lg:px-6">
             <div className="space-y-1">
               <h2 className="text-lg font-semibold">Quick Actions</h2>
               <p className="text-muted-foreground text-sm">
@@ -219,7 +216,7 @@ export default function DashboardPage({
           )}
 
           {/* Recent Activity */}
-          <div className="space-y-4">
+          <div className="space-y-4 px-4 lg:px-6">
             <div className="space-y-1">
               <h2 className="text-lg font-semibold">Recent Activity</h2>
               <p className="text-muted-foreground text-sm">
