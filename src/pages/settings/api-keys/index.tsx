@@ -6,6 +6,7 @@ import { IconPlus } from '@tabler/icons-react';
 
 import { CreateApiKeyDialog } from '@/components/api-keys/create-api-key-dialog';
 import { RevokeApiKeyDialog } from '@/components/api-keys/revoke-api-key-dialog';
+import { PageHeader } from '@/components/page-header';
 import { createColumns } from '@/components/tables/settings/api-keys/columns';
 import { DataTable } from '@/components/tables/settings/api-keys/data-table';
 import { Button } from '@/components/ui/button';
@@ -38,25 +39,22 @@ export default function ApiKeysPage({
   return (
     <AppLayout
       user={user}
+      organisation={user.organisation}
       breadcrumbs={breadcrumbs}
       title="API Keys"
       docsUrl="https://docs.cerberus-iam.com/admin/api-keys"
     >
-      <div className="space-y-4 px-4 py-5 lg:px-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-medium">API Key Management</h3>
-            <p className="text-muted-foreground text-sm">
-              Manage API keys for server-to-server authentication.
-              {total > 0 && ` Total: ${total} keys`}
-            </p>
-          </div>
+      <PageHeader
+        title="API Keys"
+        description={`Manage API keys for server-to-server authentication.${total > 0 ? ` ${total} key${total === 1 ? '' : 's'} total.` : ''}`}
+        actions={
           <Button onClick={() => setCreateDialogOpen(true)}>
             <IconPlus className="mr-2 size-4" />
             Create API Key
           </Button>
-        </div>
-
+        }
+      />
+      <div className="space-y-4 px-4 py-4 lg:px-6">
         <DataTable
           columns={columns}
           data={initialApiKeys}

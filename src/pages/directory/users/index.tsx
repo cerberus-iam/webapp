@@ -4,6 +4,7 @@ import type { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 
 import { IconPlus } from '@tabler/icons-react';
 
+import { PageHeader } from '@/components/page-header';
 import { createColumns } from '@/components/tables/directory/users/columns';
 import { DataTable } from '@/components/tables/directory/users/data-table';
 import { Button } from '@/components/ui/button';
@@ -44,6 +45,10 @@ export default function UsersPage({
     setDeleteDialogOpen(true);
   };
 
+  const handleCreateUser = () => {
+    setCreateDialogOpen(true);
+  };
+
   const columns = useMemo(
     () => createColumns({ onEdit: handleEdit, onDelete: handleDelete }),
     []
@@ -57,24 +62,22 @@ export default function UsersPage({
   return (
     <AppLayout
       user={user}
+      organisation={user.organisation}
       breadcrumbs={breadcrumbs}
       title="Users"
       docsUrl="https://docs.cerberus-iam.com/admin/users"
     >
-      <div className="space-y-4 px-4 py-5 lg:px-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-medium">User Management</h3>
-            <p className="text-muted-foreground text-sm">
-              Manage users, roles, and permissions for your organization.
-              {total > 0 && ` Total: ${total} users`}
-            </p>
-          </div>
+      <PageHeader
+        title="Users"
+        description={`Manage users, roles, and permissions for your organization.${total > 0 ? ` ${total} user${total === 1 ? '' : 's'} total.` : ''}`}
+        actions={
           <Button onClick={() => setCreateDialogOpen(true)}>
             <IconPlus className="mr-2 size-4" />
             Add User
           </Button>
-        </div>
+        }
+      />
+      <div className="space-y-4 px-4 py-4 lg:px-6">
         <DataTable
           columns={columns}
           data={users}
@@ -90,6 +93,19 @@ export default function UsersPage({
               ],
             },
           ]}
+          emptyState={{
+            title: total === 0 ? 'No users yet' : 'No users found',
+            description:
+              total === 0
+                ? 'Get started by adding your first user to the organization.'
+                : "Try adjusting your search or filters to find what you're looking for.",
+            ...(total === 0 && {
+              action: {
+                label: 'Add User',
+                onClick: handleCreateUser,
+              },
+            }),
+          }}
         />
       </div>
 

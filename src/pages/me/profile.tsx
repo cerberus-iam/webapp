@@ -4,6 +4,7 @@ import type { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
+import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -98,7 +99,7 @@ export default function MyProfilePage({
           'Failed to load sessions';
         setSessionError(errorMessage);
       } else {
-        setSessions(result.value.sessions);
+        setSessions(result.value.data);
       }
     } catch {
       setSessionError('An unexpected error occurred');
@@ -158,9 +159,14 @@ export default function MyProfilePage({
   return (
     <AppLayout
       user={user}
+      organisation={user.organisation}
       breadcrumbs={[{ label: 'My Profile', href: '/me/profile' }]}
     >
-      <div className="flex max-w-5xl flex-col gap-6 px-4 py-4 md:py-6 lg:px-6">
+      <PageHeader
+        title="My Profile"
+        description="Manage your personal information, security settings, and preferences."
+      />
+      <div className="flex max-w-5xl flex-col gap-6 px-4 py-4 lg:px-6">
         <Tabs defaultValue="profile" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="profile">Profile</TabsTrigger>
@@ -340,11 +346,6 @@ export default function MyProfilePage({
                             <p className="font-medium">
                               {session.userAgent || 'Unknown Device'}
                             </p>
-                            {session.isCurrent && (
-                              <span className="bg-primary text-primary-foreground rounded-full px-2 py-0.5 text-xs">
-                                Current
-                              </span>
-                            )}
                           </div>
                           {session.ipAddress && (
                             <p className="text-muted-foreground text-sm">
@@ -353,17 +354,14 @@ export default function MyProfilePage({
                           )}
                           <p className="text-muted-foreground text-xs">
                             Last active:{' '}
-                            {new Date(session.lastActiveAt).toLocaleString()}
+                            {new Date(session.lastActivityAt).toLocaleString()}
                           </p>
                         </div>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleRevokeSession(session.id)}
-                          disabled={
-                            session.isCurrent ||
-                            revokingSessionId === session.id
-                          }
+                          disabled={revokingSessionId === session.id}
                         >
                           {revokingSessionId === session.id
                             ? 'Revoking...'

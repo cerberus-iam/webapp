@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 import type { LucideIcon } from 'lucide-react';
-import { ArrowUpRight, TrendingUp } from 'lucide-react';
+import { ArrowUpRight, TrendingDown, TrendingUp } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -14,6 +14,7 @@ interface StatCardProps {
   trend?: {
     value: number;
     label: string;
+    direction?: 'up' | 'down';
   };
   isLoading?: boolean;
 }
@@ -26,11 +27,18 @@ export function StatCard({
   trend,
   isLoading,
 }: StatCardProps) {
+  const trendDirection = trend?.direction || 'up';
+  const TrendIcon = trendDirection === 'up' ? TrendingUp : TrendingDown;
+  const trendColorClass =
+    trendDirection === 'up' ? 'text-green-600' : 'text-red-600';
+
   const content = (
     <>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className="text-muted-foreground h-4 w-4" />
+        <div className="bg-muted/50 rounded-lg p-2">
+          <Icon className="text-muted-foreground h-4 w-4" />
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -40,14 +48,17 @@ export function StatCard({
           </div>
         ) : (
           <>
-            <div className="text-2xl font-bold">{value.toLocaleString()}</div>
+            <div className="text-2xl font-bold lg:text-3xl">
+              {typeof value === 'number' ? value.toLocaleString() : value}
+            </div>
             {trend && (
-              <p className="text-muted-foreground mt-1 flex items-center gap-1 text-xs">
-                <TrendingUp className="h-3 w-3" />
-                <span className="text-foreground font-medium">
-                  +{trend.value}%
+              <p className="text-muted-foreground mt-2 flex items-center gap-1 text-xs">
+                <TrendIcon className={`h-3 w-3 ${trendColorClass}`} />
+                <span className={`font-medium ${trendColorClass}`}>
+                  {trendDirection === 'up' ? '+' : ''}
+                  {trend.value}%
                 </span>{' '}
-                {trend.label}
+                <span>{trend.label}</span>
               </p>
             )}
           </>

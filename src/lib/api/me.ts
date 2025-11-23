@@ -12,17 +12,15 @@ export interface UpdateProfileData {
 
 export interface Session {
   id: string;
-  userId: string;
-  userAgent: string | null;
-  ipAddress: string | null;
-  lastActiveAt: string;
+  userAgent: string;
+  ipAddress: string;
+  lastActivityAt: string;
   createdAt: string;
   expiresAt: string;
-  isCurrent: boolean;
 }
 
 export interface ListSessionsResponse {
-  sessions: Session[];
+  data: Session[];
 }
 
 export interface MfaSetupResponse {

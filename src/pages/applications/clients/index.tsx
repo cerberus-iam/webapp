@@ -8,6 +8,7 @@ import { CreateClientDialog } from '@/components/clients/create-client-dialog';
 import { EditClientDialog } from '@/components/clients/edit-client-dialog';
 import { RevokeClientDialog } from '@/components/clients/revoke-client-dialog';
 import { RotateSecretDialog } from '@/components/clients/rotate-secret-dialog';
+import { PageHeader } from '@/components/page-header';
 import { createColumns } from '@/components/tables/applications/clients/columns';
 import { DataTable } from '@/components/tables/applications/clients/data-table';
 import { Button } from '@/components/ui/button';
@@ -63,25 +64,22 @@ export default function ClientsPage({
   return (
     <AppLayout
       user={user}
+      organisation={user.organisation}
       breadcrumbs={breadcrumbs}
       title="OAuth2 Clients"
       docsUrl="https://docs.cerberus-iam.com/admin/clients"
     >
-      <div className="space-y-4 px-4 py-5 lg:px-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-medium">OAuth2 Client Management</h3>
-            <p className="text-muted-foreground text-sm">
-              Manage OAuth2/OIDC clients and applications for your organization.
-              {total > 0 && ` Total: ${total} clients`}
-            </p>
-          </div>
+      <PageHeader
+        title="OAuth2 Clients"
+        description={`Manage OAuth2/OIDC clients and applications for your organization.${total > 0 ? ` ${total} client${total === 1 ? '' : 's'} total.` : ''}`}
+        actions={
           <Button onClick={() => setCreateDialogOpen(true)}>
             <IconPlus className="mr-2 size-4" />
             Add Client
           </Button>
-        </div>
-
+        }
+      />
+      <div className="space-y-4 px-4 py-4 lg:px-6">
         <DataTable
           columns={columns}
           data={clients}

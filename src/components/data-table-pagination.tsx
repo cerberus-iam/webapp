@@ -17,16 +17,44 @@ import {
 
 interface DataTablePaginationProps<TData> {
   table: Table<TData>;
+  /**
+   * Total count for server-side pagination
+   */
+  totalCount?: number;
 }
 
 export function DataTablePagination<TData>({
   table,
+  totalCount,
 }: DataTablePaginationProps<TData>) {
+  const isServerPagination = totalCount !== undefined;
+  const displayCount = isServerPagination
+    ? totalCount
+    : table.getFilteredRowModel().rows.length;
+
   return (
     <div className="flex items-center justify-between px-2">
       <div className="text-muted-foreground flex-1 text-sm">
-        {table.getFilteredSelectedRowModel().rows.length} of{' '}
-        {table.getFilteredRowModel().rows.length} row(s) selected.
+        {isServerPagination ? (
+          <>
+            Showing{' '}
+            {table.getState().pagination.pageIndex *
+              table.getState().pagination.pageSize +
+              1}{' '}
+            to{' '}
+            {Math.min(
+              (table.getState().pagination.pageIndex + 1) *
+                table.getState().pagination.pageSize,
+              totalCount
+            )}{' '}
+            of {totalCount} results
+          </>
+        ) : (
+          <>
+            {table.getFilteredSelectedRowModel().rows.length} of {displayCount}{' '}
+            row(s) selected.
+          </>
+        )}
       </div>
       <div className="flex items-center space-x-6 lg:space-x-8">
         <div className="flex items-center space-x-2">

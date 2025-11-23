@@ -57,16 +57,9 @@ export class TeamsApi {
   async list(
     params?: ListTeamsParams
   ): Promise<Result<ListTeamsResponse, ApiError>> {
-    const queryParams = new URLSearchParams();
-    if (params?.limit) queryParams.append('limit', params.limit.toString());
-    if (params?.offset) queryParams.append('offset', params.offset.toString());
-    if (params?.search) queryParams.append('search', params.search);
-
-    const query = queryParams.toString();
-    const url = `/v1/admin/teams${query ? `?${query}` : ''}`;
-
-    return this.client.request<ListTeamsResponse>(url, {
+    return this.client.request<ListTeamsResponse>('/v1/admin/teams', {
       method: 'GET',
+      query: params as Record<string, string | number | undefined>,
     });
   }
 

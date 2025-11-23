@@ -7,6 +7,7 @@ import { IconPlus } from '@tabler/icons-react';
 import { CreateInvitationDialog } from '@/components/invitations/create-invitation-dialog';
 import { ResendInvitationDialog } from '@/components/invitations/resend-invitation-dialog';
 import { RevokeInvitationDialog } from '@/components/invitations/revoke-invitation-dialog';
+import { PageHeader } from '@/components/page-header';
 import { createColumns } from '@/components/tables/settings/invitations/columns';
 import { DataTable } from '@/components/tables/settings/invitations/data-table';
 import { Button } from '@/components/ui/button';
@@ -46,25 +47,22 @@ export default function InvitationsPage({
   return (
     <AppLayout
       user={user}
+      organisation={user.organisation}
       breadcrumbs={breadcrumbs}
       title="Invitations"
       docsUrl="https://docs.cerberus-iam.com/admin/invitations"
     >
-      <div className="space-y-4 px-4 py-5 lg:px-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-medium">Invitation Management</h3>
-            <p className="text-muted-foreground text-sm">
-              Manage pending and accepted invitations.
-              {total > 0 && ` Total: ${total} invitations`}
-            </p>
-          </div>
+      <PageHeader
+        title="Invitations"
+        description={`Manage pending and accepted invitations to your organization.${total > 0 ? ` ${total} invitation${total === 1 ? '' : 's'} total.` : ''}`}
+        actions={
           <Button onClick={() => setCreateDialogOpen(true)}>
             <IconPlus className="mr-2 size-4" />
             Send Invitation
           </Button>
-        </div>
-
+        }
+      />
+      <div className="space-y-4 px-4 py-4 lg:px-6">
         <DataTable
           columns={columns}
           data={initialInvitations}

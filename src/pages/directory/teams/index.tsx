@@ -4,6 +4,7 @@ import type { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 
 import { IconPlus } from '@tabler/icons-react';
 
+import { PageHeader } from '@/components/page-header';
 import { createColumns } from '@/components/tables/directory/teams/columns';
 import { DataTable } from '@/components/tables/directory/teams/data-table';
 import { CreateTeamDialog } from '@/components/teams/create-team-dialog';
@@ -61,25 +62,22 @@ export default function TeamsPage({
   return (
     <AppLayout
       user={user}
+      organisation={user.organisation}
       breadcrumbs={breadcrumbs}
       title="Teams"
       docsUrl="https://docs.cerberus-iam.com/admin/teams"
     >
-      <div className="space-y-4 px-4 py-5 lg:px-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-medium">Team Management</h3>
-            <p className="text-muted-foreground text-sm">
-              Manage teams and their members in your organization.
-              {total > 0 && ` Total: ${total} teams`}
-            </p>
-          </div>
+      <PageHeader
+        title="Teams"
+        description={`Manage teams and their members in your organization.${total > 0 ? ` ${total} team${total === 1 ? '' : 's'} total.` : ''}`}
+        actions={
           <Button onClick={() => setCreateDialogOpen(true)}>
             <IconPlus className="mr-2 size-4" />
             Add Team
           </Button>
-        </div>
-
+        }
+      />
+      <div className="space-y-4 px-4 py-4 lg:px-6">
         <DataTable
           columns={columns}
           data={teams}

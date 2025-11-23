@@ -16,6 +16,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
+import { Users } from 'lucide-react';
 
 import { DataTablePagination } from '@/components/data-table-pagination';
 import {
@@ -23,6 +24,7 @@ import {
   DataTableToolbar,
 } from '@/components/data-table-toolbar';
 import { DataTableViewOptions } from '@/components/data-table-view-options';
+import { EmptyState } from '@/components/empty-state';
 import {
   Table,
   TableBody,
@@ -38,6 +40,33 @@ interface DataTableProps<TData, TValue> {
   searchKey?: string;
   searchPlaceholder?: string;
   facetedFilters?: DataTableFacetedFilter[];
+  /**
+   * Total count for server-side pagination
+   */
+  totalCount?: number;
+  /**
+   * Current page (0-indexed)
+   */
+  pageIndex?: number;
+  /**
+   * Page size
+   */
+  pageSize?: number;
+  /**
+   * Callback when pagination changes
+   */
+  onPaginationChange?: (pageIndex: number, pageSize: number) => void;
+  /**
+   * Empty state customization
+   */
+  emptyState?: {
+    title: string;
+    description?: string;
+    action?: {
+      label: string;
+      onClick: () => void;
+    };
+  };
 }
 
 export function DataTable<TData, TValue>({
@@ -46,6 +75,11 @@ export function DataTable<TData, TValue>({
   searchKey,
   searchPlaceholder,
   facetedFilters,
+  totalCount,
+  pageIndex = 0,
+  pageSize = 50,
+  onPaginationChange,
+  emptyState,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
@@ -54,6 +88,8 @@ export function DataTable<TData, TValue>({
     []
   );
   const [sorting, setSorting] = React.useState<SortingState>([]);
+
+  const isServerPagination = totalCount !== undefined && onPaginationChange;
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
@@ -64,7 +100,24 @@ export function DataTable<TData, TValue>({
       columnVisibility,
       rowSelection,
       columnFilters,
+      ...(isServerPagination && {
+        pagination: {
+          pageIndex,
+          pageSize,
+        },
+      }),
     },
+    ...(isServerPagination && {
+      pageCount: Math.ceil(totalCount / pageSize),
+      manualPagination: true,
+      onPaginationChange: (updater) => {
+        const newPagination =
+          typeof updater === 'function'
+            ? updater({ pageIndex, pageSize })
+            : updater;
+        onPaginationChange(newPagination.pageIndex, newPagination.pageSize);
+      },
+    }),
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
@@ -72,7 +125,9 @@ export function DataTable<TData, TValue>({
     onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    ...(!isServerPagination && {
+      getPaginationRowModel: getPaginationRowModel(),
+    }),
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
@@ -128,18 +183,25 @@ export function DataTable<TData, TValue>({
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
+                <TableCell colSpan={columns.length} className="h-0 p-0">
+                  <div className="p-8">
+                    <EmptyState
+                      icon={emptyState?.action ? Users : undefined}
+                      title={emptyState?.title || 'No results found'}
+                      description={
+                        emptyState?.description ||
+                        'Try adjusting your search or filters.'
+                      }
+                      action={emptyState?.action}
+                    />
+                  </div>
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} />
+      <DataTablePagination table={table} totalCount={totalCount} />
     </div>
   );
 }

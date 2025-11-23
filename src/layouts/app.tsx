@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { AppSidebar } from '@/components/app-sidebar';
 import { SiteHeader } from '@/components/site-header';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import type { OrganisationSummary } from '@/types/iam';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -18,6 +19,7 @@ interface AppLayoutProps {
   }>;
   title?: string;
   docsUrl?: string;
+  organisation?: OrganisationSummary;
 }
 
 export function AppLayout({
@@ -26,6 +28,7 @@ export function AppLayout({
   breadcrumbs = [],
   title,
   docsUrl,
+  organisation,
 }: AppLayoutProps) {
   return (
     <SidebarProvider
@@ -42,6 +45,7 @@ export function AppLayout({
           breadcrumbs={breadcrumbs}
           title={title || breadcrumbs[breadcrumbs.length - 1]?.label || ''}
           docsUrl={docsUrl}
+          organisation={organisation}
         />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">

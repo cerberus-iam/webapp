@@ -16,6 +16,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
+import { ShieldCheck } from 'lucide-react';
 
 import { DataTablePagination } from '@/components/data-table-pagination';
 import {
@@ -23,6 +24,7 @@ import {
   DataTableToolbar,
 } from '@/components/data-table-toolbar';
 import { DataTableViewOptions } from '@/components/data-table-view-options';
+import { EmptyState } from '@/components/empty-state';
 import {
   Table,
   TableBody,
@@ -38,6 +40,14 @@ interface DataTableProps<TData, TValue> {
   searchKey?: string;
   searchPlaceholder?: string;
   facetedFilters?: DataTableFacetedFilter[];
+  emptyState?: {
+    title: string;
+    description?: string;
+    action?: {
+      label: string;
+      onClick: () => void;
+    };
+  };
 }
 
 export function DataTable<TData, TValue>({
@@ -46,6 +56,7 @@ export function DataTable<TData, TValue>({
   searchKey,
   searchPlaceholder,
   facetedFilters,
+  emptyState,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
@@ -128,11 +139,18 @@ export function DataTable<TData, TValue>({
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
+                <TableCell colSpan={columns.length} className="h-0 p-0">
+                  <div className="p-8">
+                    <EmptyState
+                      icon={emptyState?.action ? ShieldCheck : undefined}
+                      title={emptyState?.title || 'No results found'}
+                      description={
+                        emptyState?.description ||
+                        'Try adjusting your search or filters.'
+                      }
+                      action={emptyState?.action}
+                    />
+                  </div>
                 </TableCell>
               </TableRow>
             )}

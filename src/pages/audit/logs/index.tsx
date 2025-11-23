@@ -1,5 +1,6 @@
 import type { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 
+import { PageHeader } from '@/components/page-header';
 import { columns } from '@/components/tables/audit/logs/columns';
 import { DataTable } from '@/components/tables/audit/logs/data-table';
 import { AppLayout } from '@/layouts/app';
@@ -20,22 +21,16 @@ export default function AuditLogsPage({
   return (
     <AppLayout
       user={user}
+      organisation={user.organisation}
       breadcrumbs={breadcrumbs}
       title="Audit Logs"
       docsUrl="https://docs.cerberus-iam.com/admin/audit-logs"
     >
-      <div className="space-y-4 px-4 py-5 lg:px-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-medium">Audit & Activity</h3>
-            <p className="text-muted-foreground text-sm">
-              View activity history and security events across your
-              organization.
-              {total > 0 && ` Total: ${total} events`}
-            </p>
-          </div>
-        </div>
-
+      <PageHeader
+        title="Audit Logs"
+        description={`View activity history and security events across your organization.${total > 0 ? ` ${total} event${total === 1 ? '' : 's'} recorded.` : ''}`}
+      />
+      <div className="space-y-4 px-4 py-4 lg:px-6">
         <DataTable
           columns={columns}
           data={initialAuditLogs}

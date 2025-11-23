@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import { IconExternalLink } from '@tabler/icons-react';
+import { IconBuilding, IconExternalLink } from '@tabler/icons-react';
 
 import {
   Breadcrumb,
@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import type { OrganisationSummary } from '@/types/iam';
 
 interface SiteHeaderProps {
   breadcrumbs?: Array<{
@@ -21,6 +22,7 @@ interface SiteHeaderProps {
   }>;
   title: string;
   docsUrl?: string;
+  organisation?: OrganisationSummary;
 }
 
 export function SiteHeader({
@@ -29,6 +31,7 @@ export function SiteHeader({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   title,
   docsUrl = 'https://docs.cerberus-iam.com',
+  organisation,
 }: SiteHeaderProps) {
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
@@ -61,6 +64,23 @@ export function SiteHeader({
           )}
         </div>
         <div className="ml-auto flex items-center gap-2">
+          {organisation && (
+            <>
+              <div className="text-muted-foreground hidden items-center gap-1.5 text-sm md:flex">
+                <IconBuilding className="size-4" />
+                <span className="font-medium">{organisation.name}</span>
+                {organisation.slug && (
+                  <span className="text-muted-foreground/60">
+                    ({organisation.slug})
+                  </span>
+                )}
+              </div>
+              <Separator
+                orientation="vertical"
+                className="mx-2 hidden data-[orientation=vertical]:h-4 md:block"
+              />
+            </>
+          )}
           <Button variant="ghost" asChild size="sm" className="hidden sm:flex">
             <a
               href={docsUrl}

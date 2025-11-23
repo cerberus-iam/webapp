@@ -4,6 +4,7 @@ import type { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 
 import { IconPlus } from '@tabler/icons-react';
 
+import { PageHeader } from '@/components/page-header';
 import { CreateRoleDialog } from '@/components/roles/create-role-dialog';
 import { DeleteRoleDialog } from '@/components/roles/delete-role-dialog';
 import { EditRoleDialog } from '@/components/roles/edit-role-dialog';
@@ -42,6 +43,10 @@ export default function RolesPage({
     setPermissionsDialogOpen(true);
   };
 
+  const handleCreateRole = () => {
+    setCreateDialogOpen(true);
+  };
+
   const columns = useMemo(
     () =>
       createColumns({
@@ -60,29 +65,40 @@ export default function RolesPage({
   return (
     <AppLayout
       user={user}
+      organisation={user.organisation}
       breadcrumbs={breadcrumbs}
       title="Roles & Permissions"
       docsUrl="https://docs.cerberus-iam.com/admin/roles"
     >
-      <div className="space-y-4 px-4 py-5 lg:px-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-medium">Role Management</h3>
-            <p className="text-muted-foreground text-sm">
-              Create and manage roles to control access to your organization.
-              {total > 0 && ` Total: ${total} roles`}
-            </p>
-          </div>
+      <PageHeader
+        title="Roles & Permissions"
+        description={`Create and manage roles to control access to your organization.${total > 0 ? ` ${total} role${total === 1 ? '' : 's'} configured.` : ''}`}
+        actions={
           <Button onClick={() => setCreateDialogOpen(true)}>
             <IconPlus className="mr-2 size-4" />
             Create Role
           </Button>
-        </div>
+        }
+      />
+      <div className="space-y-4 px-4 py-4 lg:px-6">
         <DataTable
           columns={columns}
           data={roles}
           searchKey="name"
           searchPlaceholder="Search roles..."
+          emptyState={{
+            title: total === 0 ? 'No roles yet' : 'No roles found',
+            description:
+              total === 0
+                ? 'Get started by creating your first role to manage access control.'
+                : "Try adjusting your search to find what you're looking for.",
+            ...(total === 0 && {
+              action: {
+                label: 'Create Role',
+                onClick: handleCreateRole,
+              },
+            }),
+          }}
         />
       </div>
 

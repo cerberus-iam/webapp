@@ -89,6 +89,27 @@ export class WebhooksApi {
   }
 
   /**
+   * Get a specific webhook by ID
+   */
+  async get(webhookId: string): Promise<Result<Webhook, ApiError>> {
+    return this.client.request<Webhook>(`/v1/admin/webhooks/${webhookId}`, {
+      method: 'GET',
+    });
+  }
+
+  /**
+   * Rotate the webhook signing secret
+   */
+  async rotateSecret(webhookId: string): Promise<Result<Webhook, ApiError>> {
+    return this.client.request<Webhook>(
+      `/v1/admin/webhooks/${webhookId}/rotate-secret`,
+      {
+        method: 'POST',
+      }
+    );
+  }
+
+  /**
    * Test a webhook by sending a test event
    */
   async test(webhookId: string): Promise<Result<void, ApiError>> {

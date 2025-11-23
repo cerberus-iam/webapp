@@ -35,12 +35,8 @@ export interface ListRolesParams {
 }
 
 export interface ListRolesResponse {
-  roles: Role[];
-  pagination: {
-    total: number;
-    limit: number;
-    offset: number;
-  };
+  data: Role[];
+  total: number;
 }
 
 export interface ListPermissionsParams {
@@ -50,12 +46,8 @@ export interface ListPermissionsParams {
 }
 
 export interface ListPermissionsResponse {
-  permissions: Permission[];
-  pagination: {
-    total: number;
-    limit: number;
-    offset: number;
-  };
+  data: Permission[];
+  total: number;
 }
 
 export interface CreateRoleRequest {

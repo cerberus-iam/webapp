@@ -1,6 +1,7 @@
 import * as React from 'react';
 
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 import {
   IconApi,
@@ -27,105 +28,98 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 
-const data = {
-  user: {
-    name: 'shadcn',
-    email: 'm@example.com',
-    avatar: '/avatars/shadcn.jpg',
+const navItems = [
+  {
+    title: 'Dashboard',
+    url: '/dashboard',
+    icon: IconDashboard,
   },
-  navMain: [
-    {
-      title: 'Dashboard',
-      url: '/dashboard',
-      icon: IconDashboard,
-    },
-    {
-      title: 'Directory',
-      url: '#',
-      icon: IconUsers,
-      isActive: true,
-      items: [
-        {
-          title: 'Users',
-          url: '/directory/users',
-        },
-        {
-          title: 'Teams',
-          url: '/directory/teams',
-        },
-      ],
-    },
-    {
-      title: 'Access Control',
-      url: '#',
-      icon: IconShield,
-      items: [
-        {
-          title: 'Roles',
-          url: '/access-control/roles',
-        },
-      ],
-    },
-    {
-      title: 'Applications',
-      url: '#',
-      icon: IconApi,
-      items: [
-        {
-          title: 'Clients',
-          url: '/applications/clients',
-        },
-      ],
-    },
-    {
-      title: 'Audit & Activity',
-      url: '#',
-      icon: IconFileText,
-      items: [
-        {
-          title: 'Audit Logs',
-          url: '/audit/logs',
-        },
-      ],
-    },
-    {
-      title: 'Settings',
-      url: '#',
-      icon: IconSettings,
-      items: [
-        {
-          title: 'Organisation',
-          url: '/settings/organisation',
-        },
-        {
-          title: 'Invitations',
-          url: '/settings/invitations',
-        },
-        {
-          title: 'API Keys',
-          url: '/settings/api-keys',
-        },
-        {
-          title: 'Webhooks',
-          url: '/settings/webhooks',
-        },
-      ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: 'Documentation',
-      url: '/docs',
-      icon: IconBook,
-    },
-    {
-      title: 'Search',
-      url: '#',
-      icon: IconSearch,
-      onClick: 'openCommandPalette',
-    },
-  ],
-};
+  {
+    title: 'Directory',
+    url: '#',
+    icon: IconUsers,
+    items: [
+      {
+        title: 'Users',
+        url: '/directory/users',
+      },
+      {
+        title: 'Teams',
+        url: '/directory/teams',
+      },
+    ],
+  },
+  {
+    title: 'Access Control',
+    url: '#',
+    icon: IconShield,
+    items: [
+      {
+        title: 'Roles',
+        url: '/access-control/roles',
+      },
+    ],
+  },
+  {
+    title: 'Applications',
+    url: '#',
+    icon: IconApi,
+    items: [
+      {
+        title: 'Clients',
+        url: '/applications/clients',
+      },
+    ],
+  },
+  {
+    title: 'Audit & Activity',
+    url: '#',
+    icon: IconFileText,
+    items: [
+      {
+        title: 'Audit Logs',
+        url: '/audit/logs',
+      },
+    ],
+  },
+  {
+    title: 'Settings',
+    url: '#',
+    icon: IconSettings,
+    items: [
+      {
+        title: 'Organisation',
+        url: '/settings/organisation',
+      },
+      {
+        title: 'Invitations',
+        url: '/settings/invitations',
+      },
+      {
+        title: 'API Keys',
+        url: '/settings/api-keys',
+      },
+      {
+        title: 'Webhooks',
+        url: '/settings/webhooks',
+      },
+    ],
+  },
+];
+
+const navSecondary = [
+  {
+    title: 'Documentation',
+    url: '/docs',
+    icon: IconBook,
+  },
+  {
+    title: 'Search',
+    url: '#',
+    icon: IconSearch,
+    onClick: 'openCommandPalette',
+  },
+];
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   user?: {
@@ -137,6 +131,19 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 }
 
 export function AppSidebar({ user, ...props }: AppSidebarProps) {
+  const router = useRouter();
+
+  const getInitials = (name: string, email: string): string => {
+    if (name && name.trim()) {
+      const parts = name.trim().split(' ');
+      if (parts.length >= 2) {
+        return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+      }
+      return name.slice(0, 2).toUpperCase();
+    }
+    return email.slice(0, 2).toUpperCase();
+  };
+
   const userData = user
     ? {
         name:
@@ -145,8 +152,31 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
           user.email,
         email: user.email,
         avatar: '/avatars/default.jpg',
+        initials: getInitials(
+          user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+          user.email
+        ),
       }
-    : data.user;
+    : {
+        name: 'Guest User',
+        email: 'guest@example.com',
+        avatar: '/avatars/default.jpg',
+        initials: 'GU',
+      };
+
+  // Determine which section is active based on current route
+  const navItemsWithActive = navItems.map((item) => {
+    if (item.items) {
+      const isActive = item.items.some((subItem) =>
+        router.pathname.startsWith(subItem.url)
+      );
+      return { ...item, isActive };
+    }
+    return {
+      ...item,
+      isActive: router.pathname === item.url,
+    };
+  });
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -157,7 +187,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
               asChild
               className="data-[slot=sidebar-menu-button]:p-1.5!"
             >
-              <Link href="/">
+              <Link href="/dashboard">
                 <IconShieldLock className="size-5!" />
                 <span className="text-base font-semibold">Cerberus IAM</span>
               </Link>
@@ -166,8 +196,8 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} inviteUserUrl="/users/invite" />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavMain items={navItemsWithActive} />
+        <NavSecondary items={navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={userData} />

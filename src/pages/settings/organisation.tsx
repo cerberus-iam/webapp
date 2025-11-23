@@ -3,19 +3,57 @@ import { useState } from 'react';
 import type { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { useRouter } from 'next/router';
 
-import { IconCheck, IconTrash } from '@tabler/icons-react';
+import { IconCheck, IconLoader2, IconTrash } from '@tabler/icons-react';
+import { toast } from 'sonner';
 
 import { DeleteOrganisationDialog } from '@/components/organisation/delete-organisation-dialog';
+import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { AppLayout } from '@/layouts/app';
 import { IamApiClient } from '@/lib/api/client';
 import { OrganisationApi } from '@/lib/api/organisation';
 import { createServerApiClient } from '@/lib/auth/client-factory';
 import { requireAuth } from '@/lib/auth/redirects';
+
+// Helper function to convert seconds to a friendly unit
+function secondsToFriendly(seconds: number): {
+  value: number;
+  unit: 'minutes' | 'hours' | 'days';
+} {
+  if (seconds >= 86400 && seconds % 86400 === 0) {
+    return { value: seconds / 86400, unit: 'days' };
+  }
+  if (seconds >= 3600 && seconds % 3600 === 0) {
+    return { value: seconds / 3600, unit: 'hours' };
+  }
+  return { value: Math.floor(seconds / 60), unit: 'minutes' };
+}
+
+// Helper function to convert friendly unit back to seconds
+function friendlyToSeconds(
+  value: number,
+  unit: 'minutes' | 'hours' | 'days'
+): number {
+  switch (unit) {
+    case 'minutes':
+      return value * 60;
+    case 'hours':
+      return value * 3600;
+    case 'days':
+      return value * 86400;
+  }
+}
 
 export default function OrganisationSettingsPage({
   user,
@@ -26,47 +64,149 @@ export default function OrganisationSettingsPage({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  const initialSessionLifetime = secondsToFriendly(
+    organisation.sessionLifetime
+  );
+  const [sessionLifetimeValue, setSessionLifetimeValue] = useState(
+    initialSessionLifetime.value
+  );
+  const [sessionLifetimeUnit, setSessionLifetimeUnit] = useState(
+    initialSessionLifetime.unit
+  );
+
   const [formData, setFormData] = useState({
     name: organisation.name,
     mfaRequired: organisation.mfaRequired,
     sessionLifetime: organisation.sessionLifetime,
   });
 
+  const [validationErrors, setValidationErrors] = useState<{
+    name?: string;
+    sessionLifetime?: string;
+  }>({});
+
+  // Calculate current session lifetime in seconds from the UI state
+  const currentSessionLifetimeSeconds = friendlyToSeconds(
+    sessionLifetimeValue,
+    sessionLifetimeUnit
+  );
+
+  // Validation functions
+  const validateName = (name: string): string | undefined => {
+    if (!name || name.trim().length === 0) {
+      return 'Organisation name is required';
+    }
+    if (name.trim().length < 2) {
+      return 'Organisation name must be at least 2 characters';
+    }
+    if (name.trim().length > 100) {
+      return 'Organisation name must be less than 100 characters';
+    }
+    return undefined;
+  };
+
+  const validateSessionLifetime = (
+    value: number,
+    unit: 'minutes' | 'hours' | 'days'
+  ): string | undefined => {
+    const seconds = friendlyToSeconds(value, unit);
+    const minSeconds = 300; // 5 minutes
+    const maxSeconds = 604800; // 7 days
+
+    if (value < 1) {
+      return 'Session lifetime must be at least 1';
+    }
+
+    if (seconds < minSeconds) {
+      return 'Session lifetime must be at least 5 minutes';
+    }
+
+    if (seconds > maxSeconds) {
+      return 'Session lifetime cannot exceed 7 days';
+    }
+
+    return undefined;
+  };
+
   const hasChanges =
     formData.name !== organisation.name ||
     formData.mfaRequired !== organisation.mfaRequired ||
-    formData.sessionLifetime !== organisation.sessionLifetime;
+    currentSessionLifetimeSeconds !== organisation.sessionLifetime;
+
+  const hasValidationErrors = Object.values(validationErrors).some(
+    (error) => error !== undefined
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccess(false);
+
+    // Validate all fields
+    const nameError = validateName(formData.name);
+    const sessionLifetimeError = validateSessionLifetime(
+      sessionLifetimeValue,
+      sessionLifetimeUnit
+    );
+
+    setValidationErrors({
+      name: nameError,
+      sessionLifetime: sessionLifetimeError,
+    });
+
+    // Don't submit if there are validation errors
+    if (nameError || sessionLifetimeError) {
+      return;
+    }
+
     setLoading(true);
 
     try {
       const apiClient = new IamApiClient();
       const organisationApi = new OrganisationApi(apiClient);
 
-      const result = await organisationApi.update(formData);
+      const result = await organisationApi.update({
+        ...formData,
+        sessionLifetime: currentSessionLifetimeSeconds,
+      });
 
       if (!result.ok) {
-        setError(
+        const errorMessage =
           result.error.detail ||
-            result.error.title ||
-            'Failed to update settings'
-        );
+          result.error.title ||
+          'Failed to update settings';
+        setError(errorMessage);
+        toast.error('Failed to update settings', {
+          description: errorMessage,
+        });
         setLoading(false);
         return;
       }
 
       setSuccess(true);
-      setTimeout(() => {
-        router.reload();
-      }, 1500);
+      toast.success('Settings updated successfully', {
+        description: 'Your organisation settings have been saved.',
+      });
+
+      // Update local state to reflect saved changes
+      setFormData({
+        name: formData.name,
+        mfaRequired: formData.mfaRequired,
+        sessionLifetime: currentSessionLifetimeSeconds,
+      });
+
+      setLoading(false);
+
+      // Refresh the page data without full reload
+      router.replace(router.asPath);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to update settings'
-      );
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to update settings';
+      setError(errorMessage);
+      toast.error('Failed to update settings', {
+        description: errorMessage,
+      });
       setLoading(false);
     }
   };
@@ -77,6 +217,12 @@ export default function OrganisationSettingsPage({
       mfaRequired: organisation.mfaRequired,
       sessionLifetime: organisation.sessionLifetime,
     });
+    const resetSessionLifetime = secondsToFriendly(
+      organisation.sessionLifetime
+    );
+    setSessionLifetimeValue(resetSessionLifetime.value);
+    setSessionLifetimeUnit(resetSessionLifetime.unit);
+    setValidationErrors({});
     setError(null);
     setSuccess(false);
   };
@@ -89,26 +235,25 @@ export default function OrganisationSettingsPage({
   return (
     <AppLayout
       user={user}
+      organisation={user.organisation}
       breadcrumbs={breadcrumbs}
       title="Organisation Settings"
       docsUrl="https://docs.cerberus-iam.com/admin/organisation"
     >
-      <div className="space-y-4 px-4 py-5 lg:px-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-medium">Organisation Settings</h3>
-            <p className="text-muted-foreground text-sm">
-              Manage your organisation configuration and preferences
-            </p>
-          </div>
-        </div>
-
+      <PageHeader
+        title="Organisation Settings"
+        description="Manage your organisation configuration and security preferences."
+      />
+      <div className="space-y-6 px-4 py-4 lg:px-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* General Information Section */}
-          <div className="bg-card rounded-lg border">
+          <div className="bg-card relative rounded-lg border shadow-sm">
+            {loading && (
+              <div className="bg-background/50 absolute inset-0 z-10 rounded-lg" />
+            )}
             <div className="border-b px-6 py-4">
-              <h4 className="font-medium">General Information</h4>
-              <p className="text-muted-foreground text-sm">
+              <h3 className="text-base font-semibold">General Information</h3>
+              <p className="text-muted-foreground mt-1 text-sm">
                 Basic details about your organisation
               </p>
             </div>
@@ -152,21 +297,43 @@ export default function OrganisationSettingsPage({
                 <Input
                   id="name"
                   value={formData.name}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, name: e.target.value }))
-                  }
+                  onChange={(e) => {
+                    const newName = e.target.value;
+                    setFormData((prev) => ({ ...prev, name: newName }));
+                    // Clear validation error on change
+                    if (validationErrors.name) {
+                      setValidationErrors((prev) => ({
+                        ...prev,
+                        name: undefined,
+                      }));
+                    }
+                  }}
+                  onBlur={(e) => {
+                    // Validate on blur
+                    const error = validateName(e.target.value);
+                    setValidationErrors((prev) => ({ ...prev, name: error }));
+                  }}
                   required
                   disabled={loading}
+                  className={validationErrors.name ? 'border-destructive' : ''}
                 />
+                {validationErrors.name && (
+                  <p className="text-destructive text-xs">
+                    {validationErrors.name}
+                  </p>
+                )}
               </div>
             </div>
           </div>
 
           {/* Security Settings Section */}
-          <div className="bg-card rounded-lg border">
+          <div className="bg-card relative rounded-lg border shadow-sm">
+            {loading && (
+              <div className="bg-background/50 absolute inset-0 z-10 rounded-lg" />
+            )}
             <div className="border-b px-6 py-4">
-              <h4 className="font-medium">Security Settings</h4>
-              <p className="text-muted-foreground text-sm">
+              <h3 className="text-base font-semibold">Security Settings</h3>
+              <p className="text-muted-foreground mt-1 text-sm">
                 Configure security policies for your organisation
               </p>
             </div>
@@ -191,29 +358,81 @@ export default function OrganisationSettingsPage({
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="sessionLifetime">
-                  Session Lifetime (seconds)
-                </Label>
-                <Input
-                  id="sessionLifetime"
-                  type="number"
-                  min="300"
-                  max="604800"
-                  value={formData.sessionLifetime}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      sessionLifetime: parseInt(e.target.value, 10),
-                    }))
-                  }
-                  required
-                  disabled={loading}
-                />
-                <p className="text-muted-foreground text-xs">
-                  How long user sessions last before requiring re-authentication
-                  (5 minutes to 7 days). Current:{' '}
-                  {Math.floor(formData.sessionLifetime / 3600)} hours
-                </p>
+                <Label htmlFor="sessionLifetime">Session Lifetime</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="sessionLifetime"
+                    type="number"
+                    min="1"
+                    value={sessionLifetimeValue}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value, 10);
+                      if (!isNaN(value) && value >= 1) {
+                        setSessionLifetimeValue(value);
+                        // Clear validation error on change
+                        if (validationErrors.sessionLifetime) {
+                          setValidationErrors((prev) => ({
+                            ...prev,
+                            sessionLifetime: undefined,
+                          }));
+                        }
+                      }
+                    }}
+                    onBlur={() => {
+                      // Validate on blur
+                      const error = validateSessionLifetime(
+                        sessionLifetimeValue,
+                        sessionLifetimeUnit
+                      );
+                      setValidationErrors((prev) => ({
+                        ...prev,
+                        sessionLifetime: error,
+                      }));
+                    }}
+                    required
+                    disabled={loading}
+                    className={
+                      validationErrors.sessionLifetime
+                        ? 'border-destructive flex-1'
+                        : 'flex-1'
+                    }
+                  />
+                  <Select
+                    value={sessionLifetimeUnit}
+                    onValueChange={(value: 'minutes' | 'hours' | 'days') => {
+                      setSessionLifetimeUnit(value);
+                      // Validate when unit changes
+                      const error = validateSessionLifetime(
+                        sessionLifetimeValue,
+                        value
+                      );
+                      setValidationErrors((prev) => ({
+                        ...prev,
+                        sessionLifetime: error,
+                      }));
+                    }}
+                    disabled={loading}
+                  >
+                    <SelectTrigger className="w-[120px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="minutes">Minutes</SelectItem>
+                      <SelectItem value="hours">Hours</SelectItem>
+                      <SelectItem value="days">Days</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {validationErrors.sessionLifetime ? (
+                  <p className="text-destructive text-xs">
+                    {validationErrors.sessionLifetime}
+                  </p>
+                ) : (
+                  <p className="text-muted-foreground text-xs">
+                    How long user sessions last before requiring
+                    re-authentication (5 minutes to 7 days)
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -228,17 +447,26 @@ export default function OrganisationSettingsPage({
             >
               Reset Changes
             </Button>
-            <Button type="submit" disabled={loading || !hasChanges || success}>
+            <Button
+              type="submit"
+              disabled={
+                loading || !hasChanges || success || hasValidationErrors
+              }
+            >
+              {loading && <IconLoader2 className="mr-2 size-4 animate-spin" />}
+              {success && <IconCheck className="mr-2 size-4" />}
               {loading ? 'Saving...' : success ? 'Saved!' : 'Save Changes'}
             </Button>
           </div>
         </form>
 
         {/* Danger Zone */}
-        <div className="border-destructive/50 bg-card rounded-lg border">
+        <div className="border-destructive/50 bg-card rounded-lg border shadow-sm">
           <div className="border-destructive/50 border-b px-6 py-4">
-            <h4 className="text-destructive font-medium">Danger Zone</h4>
-            <p className="text-muted-foreground text-sm">
+            <h3 className="text-destructive text-base font-semibold">
+              Danger Zone
+            </h3>
+            <p className="text-muted-foreground mt-1 text-sm">
               Irreversible and destructive actions
             </p>
           </div>

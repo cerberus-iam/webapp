@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 
-import { type Icon, IconChevronRight, IconUserPlus } from '@tabler/icons-react';
+import { type Icon, IconChevronRight } from '@tabler/icons-react';
 
 import {
   Collapsible,
@@ -22,7 +23,6 @@ import {
 
 export function NavMain({
   items,
-  inviteUserUrl,
 }: {
   items: {
     title: string;
@@ -34,27 +34,12 @@ export function NavMain({
       url: string;
     }[];
   }[];
-  inviteUserUrl?: string;
 }) {
+  const router = useRouter();
+
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
-        {inviteUserUrl && (
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                tooltip="Invite User"
-                className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
-              >
-                <Link href={inviteUserUrl}>
-                  <IconUserPlus />
-                  <span>Invite User</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        )}
         <SidebarMenu>
           {items.map((item) =>
             item.items ? (
@@ -74,22 +59,34 @@ export function NavMain({
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <SidebarMenuSub>
-                      {item.items?.map((subItem) => (
-                        <SidebarMenuSubItem key={subItem.title}>
-                          <SidebarMenuSubButton asChild>
-                            <Link href={subItem.url}>
-                              <span>{subItem.title}</span>
-                            </Link>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
+                      {item.items?.map((subItem) => {
+                        const isSubItemActive = router.pathname.startsWith(
+                          subItem.url
+                        );
+                        return (
+                          <SidebarMenuSubItem key={subItem.title}>
+                            <SidebarMenuSubButton
+                              asChild
+                              isActive={isSubItemActive}
+                            >
+                              <Link href={subItem.url}>
+                                <span>{subItem.title}</span>
+                              </Link>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        );
+                      })}
                     </SidebarMenuSub>
                   </CollapsibleContent>
                 </SidebarMenuItem>
               </Collapsible>
             ) : (
               <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton tooltip={item.title} asChild>
+                <SidebarMenuButton
+                  tooltip={item.title}
+                  asChild
+                  isActive={item.isActive}
+                >
                   <Link href={item.url}>
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>

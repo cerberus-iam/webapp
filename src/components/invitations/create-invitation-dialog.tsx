@@ -47,7 +47,7 @@ export function CreateInvitationDialog({
       return;
     }
 
-    setRoles(result.value.roles);
+    setRoles(result.value.data);
   };
 
   useEffect(() => {

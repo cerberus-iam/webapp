@@ -4,6 +4,7 @@ import type { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 
 import { IconPlus } from '@tabler/icons-react';
 
+import { PageHeader } from '@/components/page-header';
 import { createColumns } from '@/components/tables/settings/webhooks/columns';
 import { DataTable } from '@/components/tables/settings/webhooks/data-table';
 import { Button } from '@/components/ui/button';
@@ -55,26 +56,22 @@ export default function WebhooksPage({
   return (
     <AppLayout
       user={user}
+      organisation={user.organisation}
       breadcrumbs={breadcrumbs}
       title="Webhooks"
       docsUrl="https://docs.cerberus-iam.com/admin/webhooks"
     >
-      <div className="space-y-4 px-4 py-5 lg:px-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-medium">Webhook Management</h3>
-            <p className="text-muted-foreground text-sm">
-              Configure webhook endpoints to receive real-time event
-              notifications.
-              {total > 0 && ` Total: ${total} webhooks`}
-            </p>
-          </div>
+      <PageHeader
+        title="Webhooks"
+        description={`Configure webhook endpoints to receive real-time event notifications.${total > 0 ? ` ${total} webhook${total === 1 ? '' : 's'} total.` : ''}`}
+        actions={
           <Button onClick={() => setCreateDialogOpen(true)}>
             <IconPlus className="mr-2 size-4" />
             Create Webhook
           </Button>
-        </div>
-
+        }
+      />
+      <div className="space-y-4 px-4 py-4 lg:px-6">
         <DataTable
           columns={columns}
           data={initialWebhooks}

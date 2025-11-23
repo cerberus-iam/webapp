@@ -20,24 +20,29 @@ export function QuickActionCard({
   onAction,
 }: QuickActionCardProps) {
   return (
-    <Card className="hover:bg-accent/50 shadow-none transition-colors">
-      <CardHeader className="pb-3">
-        <div className="flex items-center gap-2">
-          <div className="bg-primary/10 rounded-lg p-2">
-            <Icon className="text-primary h-4 w-4" />
+    <Card className="hover:border-primary/50 group shadow-none transition-all hover:shadow-sm">
+      <CardHeader className="pb-4">
+        <div className="flex items-start gap-3">
+          <div className="bg-primary/10 group-hover:bg-primary/20 rounded-lg p-2.5 transition-colors">
+            <Icon className="text-primary h-5 w-5" />
           </div>
-          <CardTitle className="text-base">{title}</CardTitle>
+          <div className="flex-1 space-y-1">
+            <CardTitle className="text-base font-semibold">{title}</CardTitle>
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              {description}
+            </p>
+          </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-3">
-        <p className="text-muted-foreground text-sm">{description}</p>
+      <CardContent className="pt-0">
         <Button
           onClick={onAction}
-          variant="outline"
+          variant="default"
           className="w-full justify-between"
+          size="sm"
         >
           {action}
-          <ArrowRight className="h-4 w-4" />
+          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
         </Button>
       </CardContent>
     </Card>
