@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { IamApiClient } from '@/lib/api/client';
+import { apiClient } from '@/lib/api/client';
 import { type Invitation, InvitationsApi } from '@/lib/api/invitations';
 
 interface ResendInvitationDialogProps {
@@ -35,8 +35,7 @@ export function ResendInvitationDialog({
     setError(null);
     setSuccess(false);
 
-    const client = new IamApiClient();
-    const invitationsApi = new InvitationsApi(client);
+    const invitationsApi = new InvitationsApi(apiClient);
 
     const result = await invitationsApi.resend(invitation.id);
 

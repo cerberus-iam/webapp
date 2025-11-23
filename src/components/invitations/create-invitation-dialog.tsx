@@ -14,7 +14,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { IamApiClient } from '@/lib/api/client';
+import { apiClient } from '@/lib/api/client';
 import { InvitationsApi } from '@/lib/api/invitations';
 import { type Role, RolesApi } from '@/lib/api/roles';
 
@@ -36,8 +36,7 @@ export function CreateInvitationDialog({
 
   const loadRoles = async () => {
     setLoadingRoles(true);
-    const client = new IamApiClient();
-    const rolesApi = new RolesApi(client);
+    const rolesApi = new RolesApi(apiClient);
 
     const result = await rolesApi.list({ limit: 100 });
     setLoadingRoles(false);
@@ -78,8 +77,7 @@ export function CreateInvitationDialog({
     setLoading(true);
     setError(null);
 
-    const client = new IamApiClient();
-    const invitationsApi = new InvitationsApi(client);
+    const invitationsApi = new InvitationsApi(apiClient);
 
     const result = await invitationsApi.create({
       email,
@@ -136,25 +134,31 @@ export function CreateInvitationDialog({
                 <Skeleton className="h-8 w-full" />
               </div>
             ) : (
-              <div className="max-h-[300px] space-y-2 overflow-y-auto rounded-md border p-4">
-                {roles.map((role) => (
-                  <div key={role.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={role.id}
-                      checked={selectedRoles.has(role.id)}
-                      onCheckedChange={() => handleRoleToggle(role.id)}
-                    />
-                    <label
-                      htmlFor={role.id}
-                      className="flex-1 cursor-pointer text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      {role.name}
-                      {role.description && (
-                        <span className="text-muted-foreground block text-xs font-normal">
-                          {role.description}
-                        </span>
-                      )}
-                    </label>
+              <div className="max-h-[300px] space-y-3 overflow-y-auto rounded-md border p-4">
+                {roles.map((role, index) => (
+                  <div key={role.id}>
+                    <div className="flex items-start space-x-3 py-2">
+                      <Checkbox
+                        id={role.id}
+                        checked={selectedRoles.has(role.id)}
+                        onCheckedChange={() => handleRoleToggle(role.id)}
+                        className="mt-0.5"
+                      />
+                      <label
+                        htmlFor={role.id}
+                        className="flex-1 cursor-pointer space-y-1 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        <div className="text-sm leading-none font-semibold">
+                          {role.name}
+                        </div>
+                        {role.description && (
+                          <div className="text-muted-foreground text-xs leading-relaxed font-normal">
+                            {role.description}
+                          </div>
+                        )}
+                      </label>
+                    </div>
+                    {index < roles.length - 1 && <div className="border-b" />}
                   </div>
                 ))}
               </div>
