@@ -9,6 +9,18 @@ export interface InvitedBy {
   name: string | null;
 }
 
+export interface RoleSummary {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export interface OrganisationSummary {
+  id: string;
+  slug: string;
+  name: string;
+}
+
 export interface Invitation {
   id: string;
   email: string;
@@ -17,6 +29,42 @@ export interface Invitation {
   expiresAt: string;
   createdAt: string;
   invitedBy: InvitedBy;
+}
+
+/**
+ * Public invitation details returned when validating an invitation token.
+ * Used on the invitation acceptance page to display invitation information.
+ */
+export interface PublicInvitationDetails {
+  email: string;
+  organisation: OrganisationSummary;
+  role: RoleSummary;
+  invitedBy?: InvitedBy;
+  expiresAt: string;
+}
+
+/**
+ * Request body for accepting an invitation.
+ */
+export interface AcceptInvitationRequest {
+  email: string;
+  firstName: string;
+  lastName: string;
+  password: string;
+}
+
+/**
+ * Response from accepting an invitation.
+ */
+export interface AcceptInvitationResponse {
+  message: string;
+  user: {
+    id: string;
+    email: string;
+    name: string;
+  };
+  organisation: OrganisationSummary;
+  role: RoleSummary;
 }
 
 export interface CreateInvitationRequest {
@@ -91,5 +139,44 @@ export class InvitationsApi {
     return this.client.request<void>(`/v1/admin/invitations/${invitationId}`, {
       method: 'DELETE',
     });
+  }
+
+  /**
+   * Validate an invitation token and get invitation details (public endpoint).
+   * Used on the invitation acceptance page before showing the registration form.
+   *
+   * @param token - The invitation token from the URL
+   * @returns Invitation details including email, organisation, and role
+   */
+  async validateToken(
+    token: string
+  ): Promise<Result<PublicInvitationDetails, ApiError>> {
+    return this.client.request<PublicInvitationDetails>(
+      `/v1/public/invitations/${token}`,
+      {
+        method: 'GET',
+      }
+    );
+  }
+
+  /**
+   * Accept an invitation and create a new user account (public endpoint).
+   * The email must match the invitation's email.
+   *
+   * @param token - The invitation token from the URL
+   * @param data - Registration data including email, firstName, lastName, password
+   * @returns Auth response with user and organisation details, plus session cookie is set
+   */
+  async acceptInvitation(
+    token: string,
+    data: AcceptInvitationRequest
+  ): Promise<Result<AcceptInvitationResponse, ApiError>> {
+    return this.client.request<AcceptInvitationResponse>(
+      `/v1/public/invitations/${token}/accept`,
+      {
+        method: 'POST',
+        body: data,
+      }
+    );
   }
 }
