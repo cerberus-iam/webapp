@@ -74,7 +74,7 @@ export function RevokeInvitationDialog({
               </div>
               <div>
                 <span className="text-sm font-medium">Role:</span>
-                <span className="ml-2 text-sm">{invitation.role}</span>
+                <span className="ml-2 text-sm">{invitation.role.name}</span>
               </div>
               <div>
                 <span className="text-sm font-medium">Status:</span>

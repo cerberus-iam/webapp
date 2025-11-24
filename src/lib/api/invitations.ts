@@ -24,7 +24,8 @@ export interface OrganisationSummary {
 export interface Invitation {
   id: string;
   email: string;
-  role: string;
+  role: RoleSummary;
+  roleId: string;
   status: 'pending' | 'accepted' | 'expired' | 'revoked';
   expiresAt: string;
   createdAt: string;
@@ -69,7 +70,9 @@ export interface AcceptInvitationResponse {
 
 export interface CreateInvitationRequest {
   email: string;
-  roleIds: string[];
+  roleId: string;
+  teamIds?: string[];
+  expiresInDays?: number;
 }
 
 export interface ListInvitationsParams {
