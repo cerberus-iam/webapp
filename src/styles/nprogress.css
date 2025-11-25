@@ -1,0 +1,48 @@
+/* NProgress global styles for page loading progress bar */
+
+/* Main progress bar container */
+#nprogress {
+  pointer-events: none;
+}
+
+/* Progress bar itself */
+#nprogress .bar {
+  background: hsl(var(--primary));
+  position: fixed;
+  z-index: 9999;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+}
+
+/* Fancy blur effect for smooth appearance */
+#nprogress .peg {
+  display: block;
+  position: absolute;
+  right: 0px;
+  width: 100px;
+  height: 100%;
+  box-shadow:
+    0 0 10px hsl(var(--primary)),
+    0 0 5px hsl(var(--primary));
+  opacity: 1;
+  transform: rotate(3deg) translate(0px, -4px);
+}
+
+/* Spinner (hidden by default via JS config) */
+#nprogress .spinner {
+  display: none;
+}
+
+/* Dark mode adjustments - slightly brighter progress bar */
+.dark #nprogress .bar {
+  background: hsl(var(--primary));
+  opacity: 0.9;
+}
+
+.dark #nprogress .peg {
+  box-shadow:
+    0 0 12px hsl(var(--primary)),
+    0 0 6px hsl(var(--primary));
+}
