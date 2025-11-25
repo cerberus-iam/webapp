@@ -225,76 +225,163 @@ body {
 /* Shooting stars */
 .shooting-star {
   position: absolute;
-  width: 100px;
-  height: 2px;
-  background: linear-gradient(90deg, #fcbe21, transparent);
+  width: 180px;
+  height: 1.5px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(252, 190, 33, 0.6) 20%,
+    rgba(252, 190, 33, 0.2) 60%,
+    transparent 100%
+  );
   border-radius: 50%;
   opacity: 0;
-  transform: rotate(-45deg);
+  transform-origin: left center;
 }
 
 .shooting-star::before {
   content: '';
   position: absolute;
-  width: 6px;
-  height: 6px;
-  background: #fcbe21;
+  width: 3px;
+  height: 3px;
+  background: #fff;
   border-radius: 50%;
-  box-shadow: 0 0 10px 2px rgba(252, 190, 33, 0.6);
+  box-shadow: 0 0 8px 3px rgba(255, 255, 255, 0.6);
   left: 0;
-  top: -2px;
+  top: -0.75px;
 }
 
 .shooting-star-1 {
-  top: 10%;
-  left: 80%;
-  animation: shoot 6s ease-in-out infinite;
-  animation-delay: 0s;
+  top: 5%;
+  right: -180px;
+  animation: shoot1 45s linear infinite;
 }
 
 .shooting-star-2 {
-  top: 30%;
-  left: 90%;
-  animation: shoot 8s ease-in-out infinite;
-  animation-delay: 2s;
+  top: 18%;
+  right: -180px;
+  animation: shoot2 55s linear infinite;
+  animation-delay: 12s;
 }
 
 .shooting-star-3 {
-  top: 50%;
-  left: 70%;
-  animation: shoot 7s ease-in-out infinite;
-  animation-delay: 4s;
+  top: 35%;
+  right: -180px;
+  animation: shoot3 50s linear infinite;
+  animation-delay: 28s;
 }
 
 .shooting-star-4 {
-  top: 70%;
-  left: 95%;
-  animation: shoot 9s ease-in-out infinite;
-  animation-delay: 6s;
+  top: 55%;
+  right: -180px;
+  animation: shoot4 60s linear infinite;
+  animation-delay: 40s;
 }
 
-@keyframes shoot {
+@keyframes shoot1 {
   0% {
     opacity: 0;
-    transform: rotate(-45deg) translate(0, 0);
+    transform: translateX(0) translateY(0) rotate(-35deg);
   }
-
+  0.5% {
+    opacity: 0.9;
+    transform: translateX(-50px) translateY(30px) rotate(-35deg);
+  }
+  3% {
+    opacity: 0.7;
+    transform: translateX(-400px) translateY(230px) rotate(-35deg);
+  }
   5% {
-    opacity: 1;
+    opacity: 0.3;
+    transform: translateX(-800px) translateY(460px) rotate(-35deg);
   }
-
-  15% {
-    opacity: 1;
-    transform: rotate(-45deg) translate(-300px, 300px);
-  }
-
-  16% {
+  6% {
     opacity: 0;
-    transform: rotate(-45deg) translate(-300px, 300px);
+    transform: translateX(-1000px) translateY(580px) rotate(-35deg);
   }
-
   100% {
     opacity: 0;
-    transform: rotate(-45deg) translate(0, 0);
+    transform: translateX(-1000px) translateY(580px) rotate(-35deg);
+  }
+}
+
+@keyframes shoot2 {
+  0% {
+    opacity: 0;
+    transform: translateX(0) translateY(0) rotate(-42deg);
+  }
+  0.5% {
+    opacity: 0.9;
+    transform: translateX(-40px) translateY(35px) rotate(-42deg);
+  }
+  2.5% {
+    opacity: 0.7;
+    transform: translateX(-350px) translateY(280px) rotate(-42deg);
+  }
+  4.5% {
+    opacity: 0.3;
+    transform: translateX(-700px) translateY(560px) rotate(-42deg);
+  }
+  5.5% {
+    opacity: 0;
+    transform: translateX(-900px) translateY(720px) rotate(-42deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-900px) translateY(720px) rotate(-42deg);
+  }
+}
+
+@keyframes shoot3 {
+  0% {
+    opacity: 0;
+    transform: translateX(0) translateY(0) rotate(-30deg);
+  }
+  0.5% {
+    opacity: 0.9;
+    transform: translateX(-55px) translateY(25px) rotate(-30deg);
+  }
+  3.5% {
+    opacity: 0.7;
+    transform: translateX(-450px) translateY(200px) rotate(-30deg);
+  }
+  6% {
+    opacity: 0.3;
+    transform: translateX(-850px) translateY(380px) rotate(-30deg);
+  }
+  7% {
+    opacity: 0;
+    transform: translateX(-1100px) translateY(490px) rotate(-30deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-1100px) translateY(490px) rotate(-30deg);
+  }
+}
+
+@keyframes shoot4 {
+  0% {
+    opacity: 0;
+    transform: translateX(0) translateY(0) rotate(-38deg);
+  }
+  0.5% {
+    opacity: 0.9;
+    transform: translateX(-45px) translateY(30px) rotate(-38deg);
+  }
+  2% {
+    opacity: 0.7;
+    transform: translateX(-320px) translateY(210px) rotate(-38deg);
+  }
+  3.5% {
+    opacity: 0.3;
+    transform: translateX(-650px) translateY(420px) rotate(-38deg);
+  }
+  4.5% {
+    opacity: 0;
+    transform: translateX(-850px) translateY(550px) rotate(-38deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-850px) translateY(550px) rotate(-38deg);
   }
 }
