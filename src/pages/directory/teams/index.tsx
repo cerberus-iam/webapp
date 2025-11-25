@@ -17,7 +17,7 @@ import { docsUrl } from '@/config/urls';
 import { AppLayout } from '@/layouts/app';
 import type { Team } from '@/lib/api/teams';
 import { TeamsApi } from '@/lib/api/teams';
-import { createServerApiClient } from '@/lib/auth/client-factory';
+import { createAuthenticatedClient } from '@/lib/auth/redirects';
 import { requireAuth } from '@/lib/auth/redirects';
 
 export default function TeamsPage({
@@ -124,9 +124,9 @@ export default function TeamsPage({
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) =>
-  requireAuth(context, async ({ context }) => {
+  requireAuth(context, async ({ context, user }) => {
     try {
-      const client = createServerApiClient(context);
+      const client = createAuthenticatedClient(context, user);
       const teamsApi = new TeamsApi(client);
 
       const result = await teamsApi.list({ limit: 100 });

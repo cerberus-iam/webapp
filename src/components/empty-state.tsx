@@ -58,20 +58,20 @@ export function EmptyState({
   secondaryAction,
 }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center md:p-12">
-      <div className="bg-muted/50 mb-4 flex h-20 w-20 items-center justify-center rounded-full">
-        {Icon && <Icon className="text-muted-foreground h-10 w-10" />}
+    <div className="bg-muted/30 flex flex-col items-center justify-center rounded-xl border border-dashed p-8 text-center md:p-16">
+      <div className="bg-primary/10 mb-6 flex size-16 items-center justify-center rounded-2xl">
+        {Icon && <Icon className="text-primary size-8" />}
       </div>
-      <h3 className="mb-2 text-lg font-semibold">{title}</h3>
+      <h3 className="mb-2 text-lg font-semibold tracking-tight">{title}</h3>
       {description && (
-        <p className="text-muted-foreground mb-6 max-w-md text-sm">
+        <p className="text-muted-foreground mb-8 max-w-sm text-sm leading-relaxed">
           {description}
         </p>
       )}
       {(action || secondaryAction) && (
-        <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="flex flex-col gap-3 sm:flex-row">
           {action && (
-            <Button onClick={action.onClick} size="sm">
+            <Button onClick={action.onClick} size="default">
               {action.label}
             </Button>
           )}

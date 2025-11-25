@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import { docsUrl } from '@/config/urls';
 import { AppLayout } from '@/layouts/app';
 import type { ListRolesResponse, Role } from '@/lib/api/roles';
-import { createServerApiClient } from '@/lib/auth/client-factory';
+import { createAuthenticatedClient } from '@/lib/auth/redirects';
 import { requireAuth } from '@/lib/auth/redirects';
 
 export default function RolesPage({
@@ -136,9 +136,9 @@ export default function RolesPage({
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) =>
-  requireAuth(context, async ({ context }) => {
+  requireAuth(context, async ({ context, user }) => {
     try {
-      const client = createServerApiClient(context);
+      const client = createAuthenticatedClient(context, user);
       const response = await client.request<ListRolesResponse>(
         '/v1/admin/roles',
         {

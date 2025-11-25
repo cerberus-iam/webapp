@@ -25,7 +25,7 @@ import { docsUrl } from '@/config/urls';
 import { AppLayout } from '@/layouts/app';
 import { apiClient } from '@/lib/api/client';
 import { OrganisationApi } from '@/lib/api/organisation';
-import { createServerApiClient } from '@/lib/auth/client-factory';
+import { createAuthenticatedClient } from '@/lib/auth/redirects';
 import { requireAuth } from '@/lib/auth/redirects';
 
 // Helper function to convert seconds to a friendly unit
@@ -513,9 +513,9 @@ export default function OrganisationSettingsPage({
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) =>
-  requireAuth(context, async ({ context }) => {
+  requireAuth(context, async ({ context, user }) => {
     try {
-      const client = createServerApiClient(context);
+      const client = createAuthenticatedClient(context, user);
       const organisationApi = new OrganisationApi(client);
 
       const result = await organisationApi.get();

@@ -185,17 +185,21 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="data-[slot=sidebar-menu-button]:p-1.5!"
+              className="hover:bg-sidebar-accent/50 data-[slot=sidebar-menu-button]:p-2!"
             >
-              <Link href="/dashboard">
-                <Image
-                  src="/logo.svg"
-                  alt="Cerberus IAM"
-                  width={24}
-                  height={24}
-                  className="size-6!"
-                />
-                <span className="text-base font-semibold">Cerberus IAM</span>
+              <Link href="/dashboard" className="flex items-center gap-3">
+                <div className="bg-primary/10 flex size-8 items-center justify-center rounded-lg">
+                  <Image
+                    src="/logo.svg"
+                    alt="Cerberus IAM"
+                    width={20}
+                    height={20}
+                    className="size-5"
+                  />
+                </div>
+                <span className="text-base font-semibold tracking-tight">
+                  Cerberus IAM
+                </span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

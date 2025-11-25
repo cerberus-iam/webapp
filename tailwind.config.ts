@@ -23,6 +23,15 @@ const config: Config = {
         ],
       },
       colors: {
+        // Brand colors - use for custom styling
+        brand: {
+          gold: '#FCBE21',
+          'gold-light': '#FDD564',
+          'gold-dark': '#D9A41C',
+          navy: '#172554',
+          'navy-light': '#1E3A8A',
+          'navy-dark': '#0F172A',
+        },
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {

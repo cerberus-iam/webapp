@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { docsUrl } from '@/config/urls';
 import { AppLayout } from '@/layouts/app';
 import { type Invitation, InvitationsApi } from '@/lib/api/invitations';
-import { createServerApiClient } from '@/lib/auth/client-factory';
+import { createAuthenticatedClient } from '@/lib/auth/redirects';
 import { requireAuth } from '@/lib/auth/redirects';
 
 export default function InvitationsPage({
@@ -105,8 +105,8 @@ export default function InvitationsPage({
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) =>
-  requireAuth(context, async ({ context }) => {
-    const client = createServerApiClient(context);
+  requireAuth(context, async ({ context, user }) => {
+    const client = createAuthenticatedClient(context, user);
     const invitationsApi = new InvitationsApi(client);
 
     const result = await invitationsApi.list({

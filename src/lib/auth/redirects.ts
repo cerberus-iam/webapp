@@ -1,5 +1,6 @@
 import type { GetServerSidePropsContext } from 'next';
 
+import { IamApiClient } from '@/lib/api/client';
 import { createServerApiClient } from '@/lib/auth/client-factory';
 import type { MeProfile } from '@/types/iam';
 
@@ -10,6 +11,19 @@ interface WithUser<
     user: MeProfile;
   };
 }
+
+/**
+ * Creates an authenticated API client using the user's organisation slug.
+ * Use this in requireAuth handlers for making additional API requests.
+ */
+export const createAuthenticatedClient = (
+  context: GetServerSidePropsContext,
+  user: MeProfile
+): IamApiClient => {
+  return createServerApiClient(context, {
+    defaultOrgSlug: user.organisation.slug,
+  });
+};
 
 interface RedirectResponse {
   redirect: {

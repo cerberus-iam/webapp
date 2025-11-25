@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { docsUrl } from '@/config/urls';
 import { AppLayout } from '@/layouts/app';
 import { type ApiKey, ApiKeysApi } from '@/lib/api/api-keys';
-import { createServerApiClient } from '@/lib/auth/client-factory';
+import { createAuthenticatedClient } from '@/lib/auth/redirects';
 import { requireAuth } from '@/lib/auth/redirects';
 
 export default function ApiKeysPage({
@@ -89,8 +89,8 @@ export default function ApiKeysPage({
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) =>
-  requireAuth(context, async ({ context }) => {
-    const client = createServerApiClient(context);
+  requireAuth(context, async ({ context, user }) => {
+    const client = createAuthenticatedClient(context, user);
     const apiKeysApi = new ApiKeysApi(client);
 
     const result = await apiKeysApi.list({

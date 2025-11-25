@@ -35,7 +35,10 @@ export const createServerApiClient = (
 ): IamApiClient => {
   const { req } = context;
   const cookie = getCookieHeader(req.headers);
-  const orgSlug = resolveOrgSlug(req.headers as Record<string, unknown>);
+  // Prefer explicit defaultOrgSlug option, then fall back to header resolution
+  const orgSlug =
+    options.defaultOrgSlug ??
+    resolveOrgSlug(req.headers as Record<string, unknown>);
   const csrfToken = getCsrfTokenFromCookies(req.headers);
 
   console.log('[createServerApiClient] Creating client:', {
@@ -44,6 +47,7 @@ export const createServerApiClient = (
     cookieLength: cookie?.length,
     cookies: cookie?.split(';').map((c) => c.trim().split('=')[0]),
     orgSlug,
+    orgSlugSource: options.defaultOrgSlug ? 'explicit' : 'resolved',
     csrfToken: csrfToken ? `${csrfToken.substring(0, 8)}...` : null,
   });
 

@@ -6,7 +6,7 @@ import { DataTable } from '@/components/tables/audit/logs/data-table';
 import { docsUrl } from '@/config/urls';
 import { AppLayout } from '@/layouts/app';
 import { AuditLogsApi } from '@/lib/api/audit-logs';
-import { createServerApiClient } from '@/lib/auth/client-factory';
+import { createAuthenticatedClient } from '@/lib/auth/redirects';
 import { requireAuth } from '@/lib/auth/redirects';
 
 export default function AuditLogsPage({
@@ -75,8 +75,8 @@ export default function AuditLogsPage({
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) =>
-  requireAuth(context, async ({ context }) => {
-    const client = createServerApiClient(context);
+  requireAuth(context, async ({ context, user }) => {
+    const client = createAuthenticatedClient(context, user);
     const auditLogsApi = new AuditLogsApi(client);
 
     const result = await auditLogsApi.list({

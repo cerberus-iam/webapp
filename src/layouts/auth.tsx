@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -26,12 +25,22 @@ export function AuthLayout({ children }: AuthLayoutProps) {
           <div className="w-full max-w-xs">{children}</div>
         </div>
       </div>
-      <div className="bg-muted relative hidden lg:block">
-        <img
-          src="/placeholder.svg"
-          alt="Image"
-          className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
-        />
+
+      {/* Starry night background with shooting stars */}
+      <div className="relative hidden overflow-hidden bg-[#172554] lg:block">
+        {/* Stars layer */}
+        <div className="stars-small absolute inset-0" />
+        <div className="stars-medium absolute inset-0" />
+        <div className="stars-large absolute inset-0" />
+
+        {/* Shooting stars */}
+        <div className="shooting-star shooting-star-1" />
+        <div className="shooting-star shooting-star-2" />
+        <div className="shooting-star shooting-star-3" />
+        <div className="shooting-star shooting-star-4" />
+
+        {/* Subtle gradient overlay for depth */}
+        <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-[#0f172a]/50" />
       </div>
     </div>
   );

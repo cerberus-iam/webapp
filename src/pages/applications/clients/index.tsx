@@ -16,7 +16,7 @@ import { docsUrl } from '@/config/urls';
 import { AppLayout } from '@/layouts/app';
 import type { OAuth2Client } from '@/lib/api/clients';
 import { ClientsApi } from '@/lib/api/clients';
-import { createServerApiClient } from '@/lib/auth/client-factory';
+import { createAuthenticatedClient } from '@/lib/auth/redirects';
 import { requireAuth } from '@/lib/auth/redirects';
 
 export default function ClientsPage({
@@ -120,9 +120,9 @@ export default function ClientsPage({
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) =>
-  requireAuth(context, async ({ context }) => {
+  requireAuth(context, async ({ context, user }) => {
     try {
-      const client = createServerApiClient(context);
+      const client = createAuthenticatedClient(context, user);
       const clientsApi = new ClientsApi(client);
 
       const result = await clientsApi.list({ limit: 100 });

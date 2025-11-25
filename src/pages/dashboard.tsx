@@ -241,9 +241,9 @@ export default function DashboardPage({
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) =>
-  requireAuth(context, async ({ context: ctx }) => {
-    const { createServerApiClient } = await import('@/lib/auth/client-factory');
-    const apiClient = createServerApiClient(ctx);
+  requireAuth(context, async ({ context: ctx, user }) => {
+    const { createAuthenticatedClient } = await import('@/lib/auth/redirects');
+    const apiClient = createAuthenticatedClient(ctx, user);
 
     console.log('[dashboard] Starting to fetch dashboard data');
 

@@ -15,18 +15,8 @@ import { EditUserDialog } from '@/components/users/edit-user-dialog';
 import { ManageUserRolesDialog } from '@/components/users/manage-user-roles-dialog';
 import { docsUrl } from '@/config/urls';
 import { AppLayout } from '@/layouts/app';
-import { createServerApiClient } from '@/lib/auth/client-factory';
-import { requireAuth } from '@/lib/auth/redirects';
-import type { User } from '@/types/iam';
-
-interface UsersListResponse {
-  users: User[];
-  pagination: {
-    total: number;
-    limit: number;
-    offset: number;
-  };
-}
+import { createAuthenticatedClient, requireAuth } from '@/lib/auth/redirects';
+import type { User, UsersListResponse } from '@/types/iam';
 
 export default function UsersPage({
   user,
@@ -99,7 +89,7 @@ export default function UsersPage({
           <DataTable
             columns={columns}
             data={users}
-            searchKey="email"
+            searchKey="user"
             searchPlaceholder="Search by email..."
             facetedFilters={[
               {
@@ -155,9 +145,9 @@ export default function UsersPage({
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) =>
-  requireAuth(context, async ({ context }) => {
+  requireAuth(context, async ({ context, user }) => {
     try {
-      const client = createServerApiClient(context);
+      const client = createAuthenticatedClient(context, user);
       const response = await client.request<UsersListResponse>(
         '/v1/admin/users',
         {
@@ -174,18 +164,11 @@ export const getServerSideProps: GetServerSideProps = async (context) =>
         return { users: [], total: 0 };
       }
 
-      // Handle both response formats: { users: [], pagination: {} } and { data: [], total: 0 }
-      const apiResponse = response.value as unknown as Record<string, unknown>;
-      const users = (apiResponse.users || apiResponse.data || []) as User[];
-      const total =
-        ((apiResponse.pagination as Record<string, unknown> | undefined)
-          ?.total as number | undefined) ||
-        (apiResponse.total as number | undefined) ||
-        (apiResponse.count as number | undefined) ||
-        0;
+      // API returns { data: User[], total: number }
+      const { data, total } = response.value;
 
       return {
-        users,
+        users: data,
         total,
       };
     } catch (error) {

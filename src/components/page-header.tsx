@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 
+import { Separator } from '@/components/ui/separator';
+
 interface PageHeaderProps {
   /**
    * The main page title - displayed prominently
@@ -20,6 +22,11 @@ interface PageHeaderProps {
    * Optional badge or status indicator next to title
    */
   badge?: ReactNode;
+
+  /**
+   * Optional icon to display next to the title
+   */
+  icon?: ReactNode;
 }
 
 /**
@@ -40,27 +47,34 @@ export function PageHeader({
   description,
   actions,
   badge,
+  icon,
 }: PageHeaderProps) {
   return (
-    <div className="bg-background flex flex-col gap-4 border-b px-4 py-5 lg:px-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex-1 space-y-1">
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-semibold tracking-tight lg:text-3xl">
-              {title}
-            </h1>
-            {badge}
-          </div>
-          {description && (
-            <p className="text-muted-foreground max-w-3xl text-sm leading-relaxed lg:text-base">
-              {description}
-            </p>
+    <div className="flex flex-col gap-4 px-4 py-6 lg:px-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-4">
+          {icon && (
+            <div className="bg-primary/10 text-primary flex size-12 shrink-0 items-center justify-center rounded-xl">
+              {icon}
+            </div>
           )}
+          <div className="space-y-1">
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+              {badge}
+            </div>
+            {description && (
+              <p className="text-muted-foreground max-w-2xl text-sm leading-relaxed">
+                {description}
+              </p>
+            )}
+          </div>
         </div>
         {actions && (
           <div className="flex shrink-0 items-center gap-2">{actions}</div>
         )}
       </div>
+      <Separator />
     </div>
   );
 }
