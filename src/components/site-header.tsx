@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import { urls } from '@/config/urls';
 import type { OrganisationSummary } from '@/types/iam';
 
 import { Badge } from './ui/badge';
@@ -32,7 +33,7 @@ export function SiteHeader({
   // title prop is part of the interface but not used in current implementation
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   title,
-  docsUrl = 'https://docs.cerberus-iam.com',
+  docsUrl = urls.docs,
   organisation,
 }: SiteHeaderProps) {
   return (

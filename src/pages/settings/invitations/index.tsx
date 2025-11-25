@@ -11,6 +11,7 @@ import { PageHeader } from '@/components/page-header';
 import { createColumns } from '@/components/tables/settings/invitations/columns';
 import { DataTable } from '@/components/tables/settings/invitations/data-table';
 import { Button } from '@/components/ui/button';
+import { docsUrl } from '@/config/urls';
 import { AppLayout } from '@/layouts/app';
 import { type Invitation, InvitationsApi } from '@/lib/api/invitations';
 import { createServerApiClient } from '@/lib/auth/client-factory';
@@ -50,7 +51,7 @@ export default function InvitationsPage({
       organisation={user.organisation}
       breadcrumbs={breadcrumbs}
       title="Invitations"
-      docsUrl="https://docs.cerberus-iam.com/admin/invitations"
+      docsUrl={docsUrl('/admin/invitations')}
     >
       <PageHeader
         title="Invitations"

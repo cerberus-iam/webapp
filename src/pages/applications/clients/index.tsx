@@ -12,6 +12,7 @@ import { PageHeader } from '@/components/page-header';
 import { createColumns } from '@/components/tables/applications/clients/columns';
 import { DataTable } from '@/components/tables/applications/clients/data-table';
 import { Button } from '@/components/ui/button';
+import { docsUrl } from '@/config/urls';
 import { AppLayout } from '@/layouts/app';
 import type { OAuth2Client } from '@/lib/api/clients';
 import { ClientsApi } from '@/lib/api/clients';
@@ -67,7 +68,7 @@ export default function ClientsPage({
       organisation={user.organisation}
       breadcrumbs={breadcrumbs}
       title="OAuth2 Clients"
-      docsUrl="https://docs.cerberus-iam.com/admin/clients"
+      docsUrl={docsUrl('/admin/clients')}
     >
       <PageHeader
         title="OAuth2 Clients"

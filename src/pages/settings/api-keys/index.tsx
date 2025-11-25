@@ -10,6 +10,7 @@ import { PageHeader } from '@/components/page-header';
 import { createColumns } from '@/components/tables/settings/api-keys/columns';
 import { DataTable } from '@/components/tables/settings/api-keys/data-table';
 import { Button } from '@/components/ui/button';
+import { docsUrl } from '@/config/urls';
 import { AppLayout } from '@/layouts/app';
 import { type ApiKey, ApiKeysApi } from '@/lib/api/api-keys';
 import { createServerApiClient } from '@/lib/auth/client-factory';
@@ -42,7 +43,7 @@ export default function ApiKeysPage({
       organisation={user.organisation}
       breadcrumbs={breadcrumbs}
       title="API Keys"
-      docsUrl="https://docs.cerberus-iam.com/admin/api-keys"
+      docsUrl={docsUrl('/admin/api-keys')}
     >
       <PageHeader
         title="API Keys"

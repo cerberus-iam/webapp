@@ -12,6 +12,7 @@ import { CreateWebhookDialog } from '@/components/webhooks/create-webhook-dialog
 import { DeleteWebhookDialog } from '@/components/webhooks/delete-webhook-dialog';
 import { EditWebhookDialog } from '@/components/webhooks/edit-webhook-dialog';
 import { TestWebhookDialog } from '@/components/webhooks/test-webhook-dialog';
+import { docsUrl } from '@/config/urls';
 import { AppLayout } from '@/layouts/app';
 import { type Webhook, WebhooksApi } from '@/lib/api/webhooks';
 import { createServerApiClient } from '@/lib/auth/client-factory';
@@ -59,7 +60,7 @@ export default function WebhooksPage({
       organisation={user.organisation}
       breadcrumbs={breadcrumbs}
       title="Webhooks"
-      docsUrl="https://docs.cerberus-iam.com/admin/webhooks"
+      docsUrl={docsUrl('/admin/webhooks')}
     >
       <PageHeader
         title="Webhooks"

@@ -13,6 +13,7 @@ import { CreateUserDialog } from '@/components/users/create-user-dialog';
 import { DeleteUserDialog } from '@/components/users/delete-user-dialog';
 import { EditUserDialog } from '@/components/users/edit-user-dialog';
 import { ManageUserRolesDialog } from '@/components/users/manage-user-roles-dialog';
+import { docsUrl } from '@/config/urls';
 import { AppLayout } from '@/layouts/app';
 import { createServerApiClient } from '@/lib/auth/client-factory';
 import { requireAuth } from '@/lib/auth/redirects';
@@ -82,7 +83,7 @@ export default function UsersPage({
         organisation={user.organisation}
         breadcrumbs={breadcrumbs}
         title="Users"
-        docsUrl="https://docs.cerberus-iam.com/admin/users"
+        docsUrl={docsUrl('/admin/users')}
       >
         <PageHeader
           title="Users"

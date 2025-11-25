@@ -3,6 +3,7 @@ import type { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { PageHeader } from '@/components/page-header';
 import { columns } from '@/components/tables/audit/logs/columns';
 import { DataTable } from '@/components/tables/audit/logs/data-table';
+import { docsUrl } from '@/config/urls';
 import { AppLayout } from '@/layouts/app';
 import { AuditLogsApi } from '@/lib/api/audit-logs';
 import { createServerApiClient } from '@/lib/auth/client-factory';
@@ -24,7 +25,7 @@ export default function AuditLogsPage({
       organisation={user.organisation}
       breadcrumbs={breadcrumbs}
       title="Audit Logs"
-      docsUrl="https://docs.cerberus-iam.com/admin/audit-logs"
+      docsUrl={docsUrl('/admin/audit-logs')}
     >
       <PageHeader
         title="Audit Logs"

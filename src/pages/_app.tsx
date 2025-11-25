@@ -1,4 +1,5 @@
 import type { AppProps } from 'next/app';
+import { Inter } from 'next/font/google';
 
 import { PageProgress } from '@/components/page-progress';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -6,17 +7,25 @@ import { Toaster } from '@/components/ui/sonner';
 import '@/styles/globals.css';
 import '@/styles/nprogress.css';
 
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+});
+
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-    >
-      <PageProgress />
-      <Component {...pageProps} />
-      <Toaster />
-    </ThemeProvider>
+    <div className={`${inter.variable} font-sans`}>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+      >
+        <PageProgress />
+        <Component {...pageProps} />
+        <Toaster />
+      </ThemeProvider>
+    </div>
   );
 }

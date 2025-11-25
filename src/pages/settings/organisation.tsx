@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { docsUrl } from '@/config/urls';
 import { AppLayout } from '@/layouts/app';
 import { apiClient } from '@/lib/api/client';
 import { OrganisationApi } from '@/lib/api/organisation';
@@ -242,7 +243,7 @@ export default function OrganisationSettingsPage({
         organisation={user.organisation}
         breadcrumbs={breadcrumbs}
         title="Organisation Settings"
-        docsUrl="https://docs.cerberus-iam.com/admin/organisation"
+        docsUrl={docsUrl('/admin/organisation')}
       >
         <PageHeader
           title="Organisation Settings"

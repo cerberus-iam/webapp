@@ -13,6 +13,7 @@ import { DeleteTeamDialog } from '@/components/teams/delete-team-dialog';
 import { EditTeamDialog } from '@/components/teams/edit-team-dialog';
 import { ManageMembersDialog } from '@/components/teams/manage-members-dialog';
 import { Button } from '@/components/ui/button';
+import { docsUrl } from '@/config/urls';
 import { AppLayout } from '@/layouts/app';
 import type { Team } from '@/lib/api/teams';
 import { TeamsApi } from '@/lib/api/teams';
@@ -70,7 +71,7 @@ export default function TeamsPage({
         organisation={user.organisation}
         breadcrumbs={breadcrumbs}
         title="Teams"
-        docsUrl="https://docs.cerberus-iam.com/admin/teams"
+        docsUrl={docsUrl('/admin/teams')}
       >
         <PageHeader
           title="Teams"

@@ -13,6 +13,7 @@ import { ManagePermissionsDialog } from '@/components/roles/manage-permissions-d
 import { createColumns } from '@/components/tables/access-control/roles/columns';
 import { DataTable } from '@/components/tables/access-control/roles/data-table';
 import { Button } from '@/components/ui/button';
+import { docsUrl } from '@/config/urls';
 import { AppLayout } from '@/layouts/app';
 import type { ListRolesResponse, Role } from '@/lib/api/roles';
 import { createServerApiClient } from '@/lib/auth/client-factory';
@@ -73,7 +74,7 @@ export default function RolesPage({
         organisation={user.organisation}
         breadcrumbs={breadcrumbs}
         title="Roles & Permissions"
-        docsUrl="https://docs.cerberus-iam.com/admin/roles"
+        docsUrl={docsUrl('/admin/roles')}
       >
         <PageHeader
           title="Roles & Permissions"
