@@ -52,7 +52,7 @@ export interface ListPermissionsResponse {
 
 export interface CreateRoleRequest {
   name: string;
-  slug: string;
+  slug?: string; // Optional - API will auto-generate from name if not provided
   description?: string;
   isDefault?: boolean; // Whether this is the default role for new users
   permissionIds?: string[]; // Match API field name (not 'permissions')

@@ -44,7 +44,6 @@ export function CreateRoleDialog({
 
   const [formData, setFormData] = useState<CreateRoleRequest>({
     name: '',
-    slug: '',
     description: '',
     permissionIds: [], // API expects permissionIds, not permissions
   });
@@ -63,7 +62,6 @@ export function CreateRoleDialog({
         onOpenChange(false);
         setFormData({
           name: '',
-          slug: '',
           description: '',
           permissionIds: [], // API expects permissionIds, not permissions
         });
@@ -81,18 +79,6 @@ export function CreateRoleDialog({
     },
     [formData, onOpenChange, router]
   );
-
-  // Auto-generate slug from name
-  const handleNameChange = (name: string) => {
-    setFormData({
-      ...formData,
-      name,
-      slug: name
-        .toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^a-z0-9-]/g, ''),
-    });
-  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -123,29 +109,11 @@ export function CreateRoleDialog({
                 required
                 placeholder="e.g., Developer, Manager"
                 value={formData.name}
-                onChange={(e) => handleNameChange(e.target.value)}
-              />
-              {fieldErrors.name?.map((error, i) => (
-                <FieldError key={i}>{error}</FieldError>
-              ))}
-            </Field>
-
-            <Field data-invalid={Boolean(fieldErrors.slug?.length)}>
-              <FieldLabel htmlFor="slug">Slug</FieldLabel>
-              <Input
-                id="slug"
-                type="text"
-                required
-                placeholder="developer"
-                value={formData.slug}
                 onChange={(e) =>
-                  setFormData({ ...formData, slug: e.target.value })
+                  setFormData({ ...formData, name: e.target.value })
                 }
               />
-              <p className="text-muted-foreground text-xs">
-                URL-friendly identifier (lowercase, hyphens, no spaces)
-              </p>
-              {fieldErrors.slug?.map((error, i) => (
+              {fieldErrors.name?.map((error, i) => (
                 <FieldError key={i}>{error}</FieldError>
               ))}
             </Field>
@@ -161,6 +129,9 @@ export function CreateRoleDialog({
                   setFormData({ ...formData, description: e.target.value })
                 }
               />
+              <p className="text-muted-foreground text-xs">
+                A unique slug will be automatically generated from the role name
+              </p>
               {fieldErrors.description?.map((error, i) => (
                 <FieldError key={i}>{error}</FieldError>
               ))}
