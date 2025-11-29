@@ -27,7 +27,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
       </div>
 
       {/* Starry night background with shooting stars */}
-      <div className="relative hidden overflow-hidden bg-[#172554] lg:block">
+      <div className="relative hidden overflow-hidden bg-zinc-900 lg:block">
         {/* Stars layer */}
         <div className="stars-small absolute inset-0" />
         <div className="stars-medium absolute inset-0" />
@@ -40,7 +40,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         <div className="shooting-star shooting-star-4" />
 
         {/* Subtle gradient overlay for depth */}
-        <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-[#0f172a]/50" />
+        <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-black/50" />
       </div>
     </div>
   );
